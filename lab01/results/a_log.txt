@@ -1,0 +1,6 @@
+STEP1 shape=(2268, 4032, 3), dtype=uint8, min=0, max=255
+STEP3 pixels with any channel >205 (overflow): 728173 (7.96%); gray>=200 -> gray<100: 1103104 (12.06%); cv2.add(img,50) scalar-only-B differs on 0 px
+STEP3 crop y=192,x=0,size=256, bright->dark px in crop=65536
+STEP5 lab01\data\A\photo.jpg: {'Make': 'Google', 'Model': 'Pixel 5', 'FocalLength': 4.38, 'ExposureTime': 0.000214, 'FNumber': 1.73, 'ISOSpeedRatings': 69, 'FocalLengthIn35mmFilm': 27}
+STEP5 lab01\data\B\day_light.png: {'Make': 'Google', 'Model': 'Pixel 5', 'FocalLength': 4.38, 'ExposureTime': 0.004274, 'FNumber': 1.73, 'ISOSpeedRatings': 61, 'FocalLengthIn35mmFilm': 27}
+STEP5 lab01\data\B\lamp_light.png: {'Make': 'Google', 'Model': 'Pixel 5', 'FocalLength': 4.38, 'ExposureTime': 0.040007, 'FNumber': 1.73, 'ISOSpeedRatings': 557, 'FocalLengthIn35mmFilm': 27}

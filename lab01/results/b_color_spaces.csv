@@ -1,0 +1,3 @@
+space,acc_frame1,iou_frame1,acc_frame2,iou_frame2,iou_frame2_retuned
+RGB,0.8192,0.6285,0.8087,0.5885,0.7006
+HSV,0.8532,0.5783,0.659,0.1686,0.7577

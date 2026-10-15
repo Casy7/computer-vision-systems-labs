@@ -1,0 +1,7 @@
+space,channel,lo_tuned_f1,hi_tuned_f1,lo_retuned_f2,hi_retuned_f2
+RGB,R,0,128,0,140
+RGB,G,0,225,0,217
+RGB,B,12,200,0,190
+HSV,H,36,178,16,178
+HSV,S,54,250,0,254
+HSV,V,14,254,1,254

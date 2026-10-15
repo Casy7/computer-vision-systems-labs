@@ -1,0 +1,10 @@
+pair,matches,inliers,overlap_percent
+angle1-angle2,1136,33,67.4
+angle2-angle3,1068,24,70.1
+angle3-angle4,1500,975,85.0
+angle4-angle5,1400,427,68.0
+angle5-angle6,1263,190,94.6
+angle6-angle7,1162,53,77.3
+angle7-angle8,1434,475,92.8
+angle8-angle9,1186,71,80.8
+angle9-angle10,1304,132,73.6
