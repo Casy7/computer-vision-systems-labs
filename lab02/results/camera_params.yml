@@ -1,0 +1,24 @@
+%YAML 1.2
+---
+calibration_date: "2026-10-29"
+camera_model: Google Pixel 5
+image_width: 4032
+image_height: 3024
+num_calibration_frames: 24
+reprojection_error_rmse: 1.6240234454241216
+square_size_mm: 22.
+pattern_size_cols: 9
+pattern_size_rows: 6
+camera_matrix: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 3177.9430993975971, 0., 2003.0764492526623, 0.,
+       3148.5471633563543, 1552.7590886334503, 0., 0., 1. ]
+distortion_coefficients: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [ 0.12955414980606572, -0.51198672324089689,
+       0.0029420168067274678, -0.0017897767078775865,
+       0.64156157294397442 ]
