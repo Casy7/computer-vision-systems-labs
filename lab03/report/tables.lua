@@ -48,7 +48,7 @@ function tab_harris_verification()
       f(r[5], 2) .. "~пк",
       f(r[6], 1) .. "\\%",
       f(r[7], 1) .. "\\%",
-      f(r[8], 1) .. "\\%"
+      f(r[10], 1) .. "\\%"
     })
   end
 end

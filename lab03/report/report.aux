@@ -11,84 +11,72 @@
 \@writefile{toc}{\contentsline {section}{\numberline {2}Вихідні дані}{2}{section.2}\protected@file@percent }
 \abx@aux@cite{0}{harris1988combined}
 \abx@aux@segm{0}{0}{harris1988combined}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Огляд тестового набору повнорозмірних зображень смартфону Google Pixel 5 ($4032 \times 2268$): (а) \texttt  {paintings.jpg}; (б) \texttt  {alley.jpg}; (в) \texttt  {river.jpg}; (г) \texttt  {tree.jpg}}}{3}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:dataset_overview}{{1}{3}{Огляд тестового набору повнорозмірних зображень смартфону Google Pixel 5 ($4032 \times 2268$): (а) \texttt {paintings.jpg}; (б) \texttt {alley.jpg}; (в) \texttt {river.jpg}; (г) \texttt {tree.jpg}}{figure.caption.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Теоретичні відомості}{3}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Математичний апарат кутового детектора Гарріса}{3}{subsection.3.1}\protected@file@percent }
 \abx@aux@cite{0}{szeliski2022computer}
 \abx@aux@segm{0}{0}{szeliski2022computer}
 \abx@aux@cite{0}{lowe2004distinctive}
 \abx@aux@segm{0}{0}{lowe2004distinctive}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Математичне обґрунтування черговості операцій}{4}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Природа масштабної неінваріантності Гарріса}{4}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Черговість диференціювання та згладжування}{4}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Масштабна неінваріантність детектора Гарріса}{4}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Детектор і дескриптор SIFT}{4}{subsection.3.4}\protected@file@percent }
 \abx@aux@cite{0}{rublee2011orb}
 \abx@aux@segm{0}{0}{rublee2011orb}
-\abx@aux@cite{0}{rosten2006machine}
-\abx@aux@segm{0}{0}{rosten2006machine}
-\abx@aux@cite{0}{calonder2010brief}
-\abx@aux@segm{0}{0}{calonder2010brief}
 \abx@aux@cite{0}{mikolajczyk2005performance}
 \abx@aux@segm{0}{0}{mikolajczyk2005performance}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Детектор і дескриптор SIFT}{5}{subsection.3.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Детектор і дескриптор ORB}{5}{subsection.3.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Метрика повторюваності (Repeatability)}{6}{subsection.3.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}Хід роботи}{6}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Метрика повторюваності (Repeatability)}{5}{subsection.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Хід роботи}{5}{section.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {5}Результати експериментів}{7}{section.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Власна реалізація та верифікація детектора Гарріса}{7}{subsection.5.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Кількісна звірка точності власної реалізації детектора Гарріса з функцією \texttt  {cv2.cornerHarris}}}{7}{table.caption.3}\protected@file@percent }
-\newlabel{tab:harris_verif}{{1}{7}{Кількісна звірка точності власної реалізації детектора Гарріса з функцією \texttt {cv2.cornerHarris}}{table.caption.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Покрокова візуалізація конвеєра власної реалізації детектора Гарріса: (а) вхідний фрагмент кадру; (б) градієнт $I_x$; (в) градієнт $I_y$; (г) згладжений тензор $A = \langle I_x^2 \rangle _{\sigma =1.5}$; (д) карта відгуку $R$; (е) відібрані кути після порогової фільтрації та NMS}}{8}{figure.caption.1}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:harris_pipe}{{1}{8}{Покрокова візуалізація конвеєра власної реалізації детектора Гарріса: (а) вхідний фрагмент кадру; (б) градієнт $I_x$; (в) градієнт $I_y$; (г) згладжений тензор $A = \langle I_x^2 \rangle _{\sigma =1.5}$; (д) карта відгуку $R$; (е) відібрані кути після порогової фільтрації та NMS}{figure.caption.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Порівняння власного детектора Гарріса та \texttt  {cv2.cornerHarris}: (а) просторовий оверлей кутових точок на фрагменті; (б) розподіл нев'язок зміщення між точками}}{8}{figure.caption.2}\protected@file@percent }
-\newlabel{fig:harris_cv_comp}{{2}{8}{Порівняння власного детектора Гарріса та \texttt {cv2.cornerHarris}: (а) просторовий оверлей кутових точок на фрагменті; (б) розподіл нев'язок зміщення між точками}{figure.caption.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Покрокова візуалізація конвеєра власної реалізації детектора Гарріса: (а) вхідний фрагмент кадру; (б) градієнт $I_x$; (в) градієнт $I_y$; (г) згладжений тензор $A = \langle I_x^2 \rangle _{\sigma =1.5}$; (д) карта відгуку $R$ (логарифмічна шкала); (е) кути після порогової фільтрації та ізотропного NMS}}{7}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:harris_pipe}{{2}{7}{Покрокова візуалізація конвеєра власної реалізації детектора Гарріса: (а) вхідний фрагмент кадру; (б) градієнт $I_x$; (в) градієнт $I_y$; (г) згладжений тензор $A = \langle I_x^2 \rangle _{\sigma =1.5}$; (д) карта відгуку $R$ (логарифмічна шкала); (е) кути після порогової фільтрації та ізотропного NMS}{figure.caption.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Порівняння власного детектора Гарріса та \texttt  {cv2.cornerHarris}: (а) просторовий оверлей кутових точок на фрагменті; (б) розподіл нев'язок зміщення між точками}}{8}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:harris_cv_comp}{{3}{8}{Порівняння власного детектора Гарріса та \texttt {cv2.cornerHarris}: (а) просторовий оверлей кутових точок на фрагменті; (б) розподіл нев'язок зміщення між точками}{figure.caption.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Кількісна звірка точності власної реалізації детектора Гарріса з функцією \texttt  {cv2.cornerHarris}}}{8}{table.caption.4}\protected@file@percent }
+\newlabel{tab:harris_verif}{{1}{8}{Кількісна звірка точності власної реалізації детектора Гарріса з функцією \texttt {cv2.cornerHarris}}{table.caption.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Дослідження чутливості Гарріса до масштабу}{9}{subsection.5.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Ілюстрація неінваріантності детектора Гарріса до масштабу ($\times 2$): (а) просторова неузгодженість кутів оригіналу та збільшених кутів зменшеного кадру; (б) гістограма евклідових зміщень}}{9}{figure.caption.4}\protected@file@percent }
-\newlabel{fig:scale_sens}{{3}{9}{Ілюстрація неінваріантності детектора Гарріса до масштабу ($\times 2$): (а) просторова неузгодженість кутів оригіналу та збільшених кутів зменшеного кадру; (б) гістограма евклідових зміщень}{figure.caption.4}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Кількісна оцінка чутливості детектора Гарріса до 2-кратного масштабування}}{9}{table.caption.5}\protected@file@percent }
-\newlabel{tab:scale_sens}{{2}{9}{Кількісна оцінка чутливості детектора Гарріса до 2-кратного масштабування}{table.caption.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Порівняльний аналіз SIFT та ORB}{10}{subsection.5.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Порівняння обчислювальної ефективності та розмірностей SIFT та ORB}}{10}{table.caption.9}\protected@file@percent }
-\newlabel{tab:detector_bench}{{3}{10}{Порівняння обчислювальної ефективності та розмірностей SIFT та ORB}{table.caption.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Експериментальне оцінювання повторюваності (Repeatability)}{10}{subsection.5.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Оглядове відображення ключових точок у режимі \texttt  {DRAW\_RICH\_KEYPOINTS}: (а) SIFT ($1000$ точок); (б) ORB ($1000$ точок)}}{11}{figure.caption.6}\protected@file@percent }
-\newlabel{fig:rich_full}{{4}{11}{Оглядове відображення ключових точок у режимі \texttt {DRAW\_RICH\_KEYPOINTS}: (а) SIFT ($1000$ точок); (б) ORB ($1000$ точок)}{figure.caption.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Детальний вигляд ключових точок на фрагменті сцени: (а) SIFT (різноманітні просторові радіуси $\sigma $); (б) ORB (кути FAST із кутом центроїда)}}{12}{figure.caption.7}\protected@file@percent }
-\newlabel{fig:rich_crop}{{5}{12}{Детальний вигляд ключових точок на фрагменті сцени: (а) SIFT (різноманітні просторові радіуси $\sigma $); (б) ORB (кути FAST із кутом центроїда)}{figure.caption.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Статистичні розподіли параметрів точок SIFT та ORB: (а) характерний просторовий масштаб; (б) кут орієнтації $\theta \in [0^\circ , 360^\circ )$}}{12}{figure.caption.8}\protected@file@percent }
-\newlabel{fig:scale_angle_dist}{{6}{12}{Статистичні розподіли параметрів точок SIFT та ORB: (а) характерний просторовий масштаб; (б) кут орієнтації $\theta \in [0^\circ , 360^\circ )$}{figure.caption.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Повторюваність за повороту}}{12}{figure.caption.10}\protected@file@percent }
-\newlabel{fig:rep_rot}{{7}{12}{Повторюваність за повороту}{figure.caption.10}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Повторюваність за масштабу}}{12}{figure.caption.10}\protected@file@percent }
-\newlabel{fig:rep_scale}{{8}{12}{Повторюваність за масштабу}{figure.caption.10}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Повторюваність за яскравості}}{13}{figure.caption.11}\protected@file@percent }
-\newlabel{fig:rep_bright}{{9}{13}{Повторюваність за яскравості}{figure.caption.11}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Повторюваність за шуму $\sigma $}}{13}{figure.caption.11}\protected@file@percent }
-\newlabel{fig:rep_noise}{{10}{13}{Повторюваність за шуму $\sigma $}{figure.caption.11}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Зведена панель експериментів на повторюваність детекторів Harris, SIFT та ORB в однакових умовах ($N=1000, r=10$~пк, $\varepsilon =3.0$~пк): (а) поворот $0^\circ $--$90^\circ $; (б) масштаб $0.5$--$2.0$; (в) множник яскравості $0.5$--$1.5$; (г) гауссів шум $\sigma \in [0, 20]$}}{13}{figure.caption.12}\protected@file@percent }
-\newlabel{fig:rep_overview}{{11}{13}{Зведена панель експериментів на повторюваність детекторів Harris, SIFT та ORB в однакових умовах ($N=1000, r=10$~пк, $\varepsilon =3.0$~пк): (а) поворот $0^\circ $--$90^\circ $; (б) масштаб $0.5$--$2.0$; (в) множник яскравості $0.5$--$1.5$; (г) гауссів шум $\sigma \in [0, 20]$}{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Ілюстрація неінваріантності детектора Гарріса до масштабу ($\times 2$): (а) просторова неузгодженість кутів оригіналу та збільшених кутів зменшеного кадру; (б) гістограма евклідових зміщень}}{10}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:scale_sens}{{4}{10}{Ілюстрація неінваріантності детектора Гарріса до масштабу ($\times 2$): (а) просторова неузгодженість кутів оригіналу та збільшених кутів зменшеного кадру; (б) гістограма евклідових зміщень}{figure.caption.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Кількісна оцінка чутливості детектора Гарріса до 2-кратного масштабування}}{10}{table.caption.6}\protected@file@percent }
+\newlabel{tab:scale_sens}{{2}{10}{Кількісна оцінка чутливості детектора Гарріса до 2-кратного масштабування}{table.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Порівняльний аналіз SIFT та ORB}{11}{subsection.5.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Порівняння обчислювальної ефективності та розмірностей SIFT та ORB}}{11}{table.caption.10}\protected@file@percent }
+\newlabel{tab:detector_bench}{{3}{11}{Порівняння обчислювальної ефективності та розмірностей SIFT та ORB}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Експериментальне оцінювання повторюваності (Repeatability)}{11}{subsection.5.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Оглядове відображення ключових точок у режимі \texttt  {DRAW\_RICH\_KEYPOINTS}: (а) SIFT (розмір кола = масштаб $\sigma $, промінь = кут $\theta $); (б) ORB ($1000$ точок)}}{12}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:rich_full}{{5}{12}{Оглядове відображення ключових точок у режимі \texttt {DRAW\_RICH\_KEYPOINTS}: (а) SIFT (розмір кола = масштаб $\sigma $, промінь = кут $\theta $); (б) ORB ($1000$ точок)}{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Детальний вигляд ключових точок на фрагменті сцени: (а) SIFT (масштабні кола $\sigma $ та промені $\theta $); (б) ORB (кути FAST із кутом центроїда)}}{13}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:rich_crop}{{6}{13}{Детальний вигляд ключових точок на фрагменті сцени: (а) SIFT (масштабні кола $\sigma $ та промені $\theta $); (б) ORB (кути FAST із кутом центроїда)}{figure.caption.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Статистичні розподіли параметрів точок SIFT та ORB: (а) характерний просторовий масштаб; (б) кут орієнтації $\theta \in [0^\circ , 360^\circ )$}}{13}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:scale_angle_dist}{{7}{13}{Статистичні розподіли параметрів точок SIFT та ORB: (а) характерний просторовий масштаб; (б) кут орієнтації $\theta \in [0^\circ , 360^\circ )$}{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Повторюваність за повороту}}{13}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:rep_rot}{{8}{13}{Повторюваність за повороту}{figure.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Повторюваність за масштабу}}{13}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:rep_scale}{{9}{13}{Повторюваність за масштабу}{figure.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Повторюваність за яскравості}}{14}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:rep_bright}{{10}{14}{Повторюваність за яскравості}{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Повторюваність за шуму $\sigma $}}{14}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:rep_noise}{{11}{14}{Повторюваність за шуму $\sigma $}{figure.caption.12}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Повторюваність детекторів за обертання кадру ($\theta \in [0^\circ , 90^\circ ]$)}}{14}{table.caption.13}\protected@file@percent }
 \newlabel{tab:rep_rot}{{4}{14}{Повторюваність детекторів за обертання кадру ($\theta \in [0^\circ , 90^\circ ]$)}{table.caption.13}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Повторюваність детекторів за зміни просторового масштабу ($s \in [0.5, 2.0]$)}}{14}{table.caption.14}\protected@file@percent }
 \newlabel{tab:rep_scale}{{5}{14}{Повторюваність детекторів за зміни просторового масштабу ($s \in [0.5, 2.0]$)}{table.caption.14}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Повторюваність детекторів за зміни яскравості кадру ($\times [0.5, 1.5]$)}}{14}{table.caption.15}\protected@file@percent }
-\newlabel{tab:rep_bright}{{6}{14}{Повторюваність детекторів за зміни яскравості кадру ($\times [0.5, 1.5]$)}{table.caption.15}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Повторюваність детекторів за зміни яскравості кадру ($\times [0.5, 1.5]$)}}{15}{table.caption.15}\protected@file@percent }
+\newlabel{tab:rep_bright}{{6}{15}{Повторюваність детекторів за зміни яскравості кадру ($\times [0.5, 1.5]$)}{table.caption.15}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Повторюваність детекторів за адитивного гауссового шуму ($\sigma \in [0, 20]$)}}{15}{table.caption.16}\protected@file@percent }
 \newlabel{tab:rep_noise}{{7}{15}{Повторюваність детекторів за адитивного гауссового шуму ($\sigma \in [0, 20]$)}{table.caption.16}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Аналіз результатів}{15}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Аналіз результатів}{16}{section.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {7}Висновки}{16}{section.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {8}Декларація про використання генеративного ШІ}{17}{section.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ}{18}{section.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {ДОДАТОК А}Лістинги вихідного коду програми}{19}{appendix.Alph1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Модуль налаштувань, метрик та детектування (\texttt  {common.py})}}{19}{lstlisting.1}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Скрипт конвеєра Гарріса та звірки з бібліотекою (\texttt  {part\_a.py})}}{25}{lstlisting.2}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Скрипт перевірки масштабної неінваріантності (\texttt  {part\_b.py})}}{29}{lstlisting.3}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Скрипт порівняння SIFT та ORB дескрипторів (\texttt  {part\_c.py})}}{32}{lstlisting.4}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Скрипт вимірювання повторюваності за відомих перетворень (\texttt  {part\_d.py})}}{36}{lstlisting.5}\protected@file@percent }
-\abx@aux@read@bbl@mdfivesum{271C80976E30B2FF769477B12FB53D6C}
+\@writefile{toc}{\contentsline {section}{СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ}{19}{section.8}\protected@file@percent }
+\abx@aux@read@bbl@mdfivesum{5C284D46FB2D88916885110C91CCE9C0}
 \abx@aux@defaultrefcontext{0}{harris1988combined}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{szeliski2022computer}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{lowe2004distinctive}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{rublee2011orb}{none/global//global/global/global}
-\abx@aux@defaultrefcontext{0}{rosten2006machine}{none/global//global/global/global}
-\abx@aux@defaultrefcontext{0}{calonder2010brief}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{mikolajczyk2005performance}{none/global//global/global/global}
-\gdef \@abspage@last{39}
+\gdef \@abspage@last{19}

@@ -1,6 +1,7 @@
 """
 Лабораторна робота № 3. Частина C.
 Дослідження детектора та дескриптора SIFT і ORB (Кроки 11–13).
+Також генерація оглядової ілюстрації тестового набору даних.
 """
 import os
 import sys
@@ -19,7 +20,38 @@ print("=== Частина C: Дослідження SIFT та ORB ===")
 
 image_paths = sorted(glob.glob(os.path.join(DATA_DIR, "*.jpg")))
 
+# =========================================================================
+# Генерація оглядової таблиці-ілюстрації датасету (dataset_overview.png)
+# =========================================================================
+print("\nГенерація огляду датасету (dataset_overview.png)...")
+fig_ds, axes_ds = plt.subplots(2, 2, figsize=(12, 7.5))
+ds_info = [
+    ("paintings.jpg", "(а) paintings.jpg (галерея картин, контрастні рами)", axes_ds[0, 0]),
+    ("alley.jpg", "(б) alley.jpg (паркова алея, лінійна перспектива)", axes_ds[0, 1]),
+    ("river.jpg", "(в) river.jpg (набережна, органічні текстури води й каміння)", axes_ds[1, 0]),
+    ("tree.jpg", "(г) tree.jpg (крона дерева, фрактальні гілки й листя)", axes_ds[1, 1])
+]
+
+for fname, title, ax in ds_info:
+    img_p = os.path.join(DATA_DIR, fname)
+    rgb = imread_rgb(img_p)
+    # Зменшуємо для компактного збереження
+    h_orig, w_orig = rgb.shape[:2]
+    preview = cv2.resize(rgb, (800, int(800 * h_orig / w_orig)), interpolation=cv2.INTER_AREA)
+    ax.imshow(preview)
+    ax.set_title(f"{title}\n[{w_orig}×{h_orig} px, Google Pixel 5]", fontsize=10, pad=6)
+    ax.axis("off")
+
+plt.tight_layout()
+overview_path = os.path.join(FIGURES_DIR, "dataset_overview.png")
+fig_ds.savefig(overview_path, dpi=180)
+plt.close(fig_ds)
+print(f"Збережено {overview_path}")
+
+
+# =========================================================================
 # Крок 11: Створення детекторів
+# =========================================================================
 sift_unlim = cv2.SIFT_create()
 sift_1000 = cv2.SIFT_create(nfeatures=1000)
 orb_1000 = cv2.ORB_create(nfeatures=1000)
@@ -63,7 +95,7 @@ for _ in range(n_runs):
     t_orb_list.append((time.perf_counter() - t0) * 1000.0)
 t_orb_1k_ms = float(np.mean(t_orb_list))
 
-print(f"Базове зображення: paintings.jpg ({w} x {h})")
+print(f"\nБазове зображення: paintings.jpg ({w} x {h})")
 print(f"  SIFT (unlim): {len(kps_sift_all)} точок, дескриптор: {des_sift_all.shape}, тип: {des_sift_all.dtype}, час: {t_sift_all_ms:.1f} мс")
 print(f"  SIFT (1000):  {len(kps_sift1k)} точок, дескриптор: {des_sift1k.shape}, тип: {des_sift1k.dtype}, час: {t_sift_1k_ms:.1f} мс")
 print(f"  ORB (1000):   {len(kps_orb1k)} точок, дескриптор: {des_orb1k.shape}, тип: {des_orb1k.dtype}, час: {t_orb_1k_ms:.1f} мс")
@@ -73,22 +105,22 @@ print(f"  Прискорення ORB порівняно з SIFT (1000 точок
 for p in image_paths:
     fname = os.path.basename(p)
     g = imread_gray(p)
-    
+
     # SIFT full
     t0 = time.perf_counter()
     ks_full, ds_full = sift_unlim.detectAndCompute(g, None)
     t_s_full = (time.perf_counter() - t0) * 1000.0
-    
+
     # SIFT 1000
     t0 = time.perf_counter()
     ks_1k, ds_1k = sift_1000.detectAndCompute(g, None)
     t_s_1k = (time.perf_counter() - t0) * 1000.0
-    
+
     # ORB 1000
     t0 = time.perf_counter()
     ko_1k, do_1k = orb_1000.detectAndCompute(g, None)
     t_o_1k = (time.perf_counter() - t0) * 1000.0
-    
+
     comparison_rows.append([
         fname,
         len(ks_full),
@@ -119,14 +151,21 @@ print("Збережено c_detector_benchmarks.csv")
 # =========================================================================
 # Крок 13: Візуалізація з прапорцем DRAW_RICH_KEYPOINTS
 # =========================================================================
-# Для найкращої наочності обираємо фрагмент розміром 800x600 пікселів у зоні картин
+# Для найкращої наочності обираємо фрагмент розміром 900x700 пікселів у зоні картин
 cy, cx = h // 2, w // 2
-crop_y1, crop_y2 = cy - 200, cy + 300
-crop_x1, crop_x2 = cx - 350, cx + 350
+crop_y1, crop_y2 = cy - 250, cy + 350
+crop_x1, crop_x2 = cx - 400, cx + 400
+
+# Для SIFT відбираємо структурні ознаки з помітним масштабом (size >= 8 px),
+# щоб кола масштабу та промені орієнтації було виразно видно на ілюстрації
+kps_sift_prominent = [k for k in kps_sift1k if k.size >= 8.0]
+if len(kps_sift_prominent) < 150:
+    # Якщо менше 150, відсортуємо за розміром і візьмемо найбільші
+    kps_sift_prominent = sorted(kps_sift1k, key=lambda k: -k.size)[:300]
 
 # Генеруємо зображення з rich keypoints на всьому кадрі
 img_sift_rich = cv2.drawKeypoints(
-    base_bgr, kps_sift1k, None,
+    base_bgr, kps_sift_prominent, None,
     flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS,
     color=(0, 220, 50)
 )
@@ -144,7 +183,7 @@ orb_rich_rgb = cv2.cvtColor(img_orb_rich, cv2.COLOR_BGR2RGB)
 fig, axes = plt.subplots(2, 1, figsize=(12, 12))
 
 axes[0].imshow(sift_rich_rgb)
-axes[0].set_title(f"(а) SIFT: Rich Keypoints ($N={len(kps_sift1k)}$, розмір кола = масштаб $\\sigma$, промінь = орієнтація $\\theta$)", fontsize=11)
+axes[0].set_title(f"(а) SIFT: Rich Keypoints ($N={len(kps_sift_prominent)}$, розмір кола = масштаб $\\sigma$, промінь = орієнтація $\\theta$)", fontsize=11)
 axes[0].axis("off")
 
 axes[1].imshow(orb_rich_rgb)
@@ -152,7 +191,7 @@ axes[1].set_title(f"(б) ORB: Rich Keypoints ($N={len(kps_orb1k)}$, пірамі
 axes[1].axis("off")
 
 plt.tight_layout()
-fig.savefig(os.path.join(FIGURES_DIR, "c_rich_keypoints_full.png"))
+fig.savefig(os.path.join(FIGURES_DIR, "c_rich_keypoints_full.png"), dpi=180)
 plt.close(fig)
 print("Збережено c_rich_keypoints_full.png")
 
@@ -163,15 +202,15 @@ crop_orb = orb_rich_rgb[crop_y1:crop_y2, crop_x1:crop_x2]
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 6))
 
 ax1.imshow(crop_sift)
-ax1.set_title("SIFT (фрагмент з масштабами та орієнтаціями)", fontsize=10)
+ax1.set_title("SIFT (масштабні кола $\\sigma$ та промені орієнтації $\\theta$)", fontsize=11)
 ax1.axis("off")
 
 ax2.imshow(crop_orb)
-ax2.set_title("ORB (фрагмент з FAST-кутами та орієнтаціями)", fontsize=10)
+ax2.set_title("ORB (FAST-ознаки з вектором орієнтації інтенсивності)", fontsize=11)
 ax2.axis("off")
 
 plt.tight_layout()
-fig.savefig(os.path.join(FIGURES_DIR, "c_rich_keypoints_crop.png"))
+fig.savefig(os.path.join(FIGURES_DIR, "c_rich_keypoints_crop.png"), dpi=180)
 plt.close(fig)
 print("Збережено c_rich_keypoints_crop.png")
 
@@ -201,7 +240,7 @@ axes[1].legend(framealpha=0.9)
 axes[1].grid(True, linestyle=":", alpha=0.6)
 
 plt.tight_layout()
-fig.savefig(os.path.join(FIGURES_DIR, "c_scale_angle_distribution.png"))
+fig.savefig(os.path.join(FIGURES_DIR, "c_scale_angle_distribution.png"), dpi=180)
 plt.close(fig)
 print("Збережено c_scale_angle_distribution.png")
 
@@ -221,4 +260,3 @@ with open(log_path, "w", encoding="utf-8") as f:
 
 print(f"Збережено {log_path}")
 print("Частина C успішно виконана!\n")
-

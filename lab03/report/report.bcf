@@ -3540,9 +3540,7 @@
     <bcf:citekey order="2" intorder="1">szeliski2022computer</bcf:citekey>
     <bcf:citekey order="3" intorder="1">lowe2004distinctive</bcf:citekey>
     <bcf:citekey order="4" intorder="1">rublee2011orb</bcf:citekey>
-    <bcf:citekey order="5" intorder="1">rosten2006machine</bcf:citekey>
-    <bcf:citekey order="6" intorder="1">calonder2010brief</bcf:citekey>
-    <bcf:citekey order="7" intorder="1">mikolajczyk2005performance</bcf:citekey>
+    <bcf:citekey order="5" intorder="1">mikolajczyk2005performance</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

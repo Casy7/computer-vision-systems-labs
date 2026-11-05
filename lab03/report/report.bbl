@@ -168,91 +168,6 @@
       \verb 10.1109/ICCV.2011.6126544
       \endverb
     \endentry
-    \entry{rosten2006machine}{inproceedings}{}{}
-      \name{author}{2}{}{%
-        {{hash=712f75fa3873cef1c7e0971ca95a0237}{%
-           family={Rosten},
-           familyi={R\bibinitperiod},
-           given={Edward},
-           giveni={E\bibinitperiod}}}%
-        {{hash=7935612af661bcaae62a430e70094064}{%
-           family={Drummond},
-           familyi={D\bibinitperiod},
-           given={Tom},
-           giveni={T\bibinitperiod}}}%
-      }
-      \list{language}{1}{%
-        {english}%
-      }
-      \list{publisher}{1}{%
-        {Springer}%
-      }
-      \strng{namehash}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \strng{fullhash}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \strng{fullhashraw}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \strng{bibnamehash}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \strng{authorbibnamehash}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \strng{authornamehash}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \strng{authorfullhash}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \strng{authorfullhashraw}{c8dcfd13eb93dd0078708948c42b5a8a}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{booktitle}{European Conference on Computer Vision (ECCV)}
-      \field{title}{Machine learning for high-speed corner detection}
-      \field{year}{2006}
-      \field{pages}{430\bibrangedash 443}
-      \range{pages}{14}
-      \verb{doi}
-      \verb 10.1007/11744020_34
-      \endverb
-    \endentry
-    \entry{calonder2010brief}{article}{useauthor=false}{}
-      \name{author}{4}{}{%
-        {{hash=b9a113c9d085a4a71ae713401ef79cc1}{%
-           family={Calonder},
-           familyi={C\bibinitperiod},
-           given={Michael},
-           giveni={M\bibinitperiod}}}%
-        {{hash=7187819964d2d08695068a3f668e2ed1}{%
-           family={Lepetit},
-           familyi={L\bibinitperiod},
-           given={Vincent},
-           giveni={V\bibinitperiod}}}%
-        {{hash=ae23b3cf4ee0a48d80793140e0a51611}{%
-           family={Strecha},
-           familyi={S\bibinitperiod},
-           given={Christoph},
-           giveni={C\bibinitperiod}}}%
-        {{hash=c5304d4d3b616054451f1a8db2a3974f}{%
-           family={Fua},
-           familyi={F\bibinitperiod},
-           given={Pascal},
-           giveni={P\bibinitperiod}}}%
-      }
-      \list{language}{1}{%
-        {english}%
-      }
-      \list{publisher}{1}{%
-        {Springer}%
-      }
-      \strng{authorbibnamehash}{60b7048b8328319f6aa716e06f3f0eeb}
-      \strng{authornamehash}{60b7048b8328319f6aa716e06f3f0eeb}
-      \strng{authorfullhash}{49263fba46371eecf7d0e5249b7c825f}
-      \strng{authorfullhashraw}{49263fba46371eecf7d0e5249b7c825f}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{European Conference on Computer Vision (ECCV)}
-      \field{title}{{BRIEF}: Binary Robust Independent Elementary Features}
-      \field{year}{2010}
-      \field{pages}{778\bibrangedash 792}
-      \range{pages}{15}
-      \verb{doi}
-      \verb 10.1007/978-3-642-15561-1_56
-      \endverb
-    \endentry
     \entry{mikolajczyk2005performance}{article}{}{}
       \name{author}{2}{}{%
         {{hash=15ba95a5d65938b99eaf1f46dd4c25b8}{%
@@ -277,8 +192,8 @@
       \strng{authornamehash}{7754ef74182918a2ae94ae7327246382}
       \strng{authorfullhash}{7754ef74182918a2ae94ae7327246382}
       \strng{authorfullhashraw}{7754ef74182918a2ae94ae7327246382}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{internalsortvolume}{27}
