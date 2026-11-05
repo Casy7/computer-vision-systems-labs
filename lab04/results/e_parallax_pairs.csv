@@ -1,0 +1,5 @@
+pair,mutual_candidates,inliers_pcb,inliers_pct,err_pcb_px,median_err_offplane_px
+angle2-angle3,173,122,70.5,0.38,139.8
+angle3-angle4,2341,1795,76.7,0.24,70.1
+angle4-angle5,108,65,60.2,0.57,26.0
+angle5-angle6,65,31,47.7,1.15,36.6

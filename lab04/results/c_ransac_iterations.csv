@@ -1,0 +1,5 @@
+strategy,mode,max_iters,actual_iters_mean,inliers_mean,inliers_std,inliers_min,success_pct,success_theory_pct,mean_reprojection_err,time_ms
+Теоретичне для w = 0.5 (N = 72),fixed,72,72.0,252.7,145.0,41,47,58,1.13,3.4
+Теоретичне для w = 0.668 (N = 378),fixed,378,378.0,374.2,37.7,182,90,99,0.77,15.7
+Фіксоване N = 1000,fixed,1000,1000.0,383.9,2.1,379,100,100,0.73,39.8
+Адаптивна зупинка (N_max = 2000),adaptive,2000,547.9,383.9,2.1,379,100,100,0.73,21.9

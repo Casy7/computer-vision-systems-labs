@@ -1,0 +1,5 @@
+pair,candidates,inliers,inlier_pct,mean_reproj_err,std_reproj_err,max_reproj_err
+corner_7-corner_6,940,785,83.5,1.03,0.61,2.95
+corner_6-corner_4,2346,2274,96.9,0.51,0.40,3.00
+corner_4-corner_5,980,754,76.9,0.92,0.58,2.94
+corner_5-corner_3,285,229,80.4,1.16,0.67,2.97

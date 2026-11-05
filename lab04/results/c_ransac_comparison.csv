@@ -1,0 +1,3 @@
+implementation,inliers,reprojection_err,err_on_common,time_ms
+Власний RANSAC,379,0.78,0.79,35.4
+OpenCV RANSAC,385,0.71,0.70,9.1
