@@ -1,0 +1,5 @@
+Image,SIFT_Full_Count,SIFT_Full_Time_ms,SIFT_1000_Count,SIFT_Desc_Dim,SIFT_Desc_Dtype,SIFT_1000_Time_ms,ORB_1000_Count,ORB_Desc_Dim,ORB_Desc_Dtype,ORB_1000_Time_ms,ORB_Speedup
+alley.jpg,170438,1103.5,1000,128,float32,629.7,1000,32,uint8,141.8,4.4x
+paintings.jpg,64993,682.4,1000,128,float32,572.9,1000,32,uint8,73.3,7.8x
+river.jpg,100416,841.4,1000,128,float32,569.1,1000,32,uint8,98.9,5.8x
+tree.jpg,147254,953.9,1000,128,float32,594.2,1000,32,uint8,157.2,3.8x

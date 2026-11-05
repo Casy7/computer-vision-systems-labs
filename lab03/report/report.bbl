@@ -1,0 +1,301 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global/global}
+    \entry{harris1988combined}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=26c2e30a214100e1224d04b183a1e7da}{%
+           family={Harris},
+           familyi={H\bibinitperiod},
+           given={Chris},
+           giveni={C\bibinitperiod}}}%
+        {{hash=040c37e81c1c52d09c40b01f4474a405}{%
+           family={Stephens},
+           familyi={S\bibinitperiod},
+           given={Mike},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{namehash}{c2d71df4b626b292cccb05dc10223c20}
+      \strng{fullhash}{c2d71df4b626b292cccb05dc10223c20}
+      \strng{fullhashraw}{c2d71df4b626b292cccb05dc10223c20}
+      \strng{bibnamehash}{c2d71df4b626b292cccb05dc10223c20}
+      \strng{authorbibnamehash}{c2d71df4b626b292cccb05dc10223c20}
+      \strng{authornamehash}{c2d71df4b626b292cccb05dc10223c20}
+      \strng{authorfullhash}{c2d71df4b626b292cccb05dc10223c20}
+      \strng{authorfullhashraw}{c2d71df4b626b292cccb05dc10223c20}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 4th Alvey Vision Conference}
+      \field{title}{A combined corner and edge detector}
+      \field{year}{1988}
+      \field{pages}{147\bibrangedash 151}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.5244/C.2.23
+      \endverb
+    \endentry
+    \entry{szeliski2022computer}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=f2e556c93256e7d70895d67702e14f1a}{%
+           family={Szeliski},
+           familyi={S\bibinitperiod},
+           given={Richard},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{f2e556c93256e7d70895d67702e14f1a}
+      \strng{fullhash}{f2e556c93256e7d70895d67702e14f1a}
+      \strng{fullhashraw}{f2e556c93256e7d70895d67702e14f1a}
+      \strng{bibnamehash}{f2e556c93256e7d70895d67702e14f1a}
+      \strng{authorbibnamehash}{f2e556c93256e7d70895d67702e14f1a}
+      \strng{authornamehash}{f2e556c93256e7d70895d67702e14f1a}
+      \strng{authorfullhash}{f2e556c93256e7d70895d67702e14f1a}
+      \strng{authorfullhashraw}{f2e556c93256e7d70895d67702e14f1a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{2}
+      \field{isbn}{978-3-030-34371-2}
+      \field{title}{Computer Vision: Algorithms and Applications}
+      \field{year}{2022}
+      \field{pages}{957}
+      \range{pages}{1}
+    \endentry
+    \entry{lowe2004distinctive}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=83f4643381c1cc2c483b4210498fedb0}{%
+           family={Lowe},
+           familyi={L\bibinitperiod},
+           given={David\bibnamedelima G.},
+           giveni={D\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{namehash}{83f4643381c1cc2c483b4210498fedb0}
+      \strng{fullhash}{83f4643381c1cc2c483b4210498fedb0}
+      \strng{fullhashraw}{83f4643381c1cc2c483b4210498fedb0}
+      \strng{bibnamehash}{83f4643381c1cc2c483b4210498fedb0}
+      \strng{authorbibnamehash}{83f4643381c1cc2c483b4210498fedb0}
+      \strng{authornamehash}{83f4643381c1cc2c483b4210498fedb0}
+      \strng{authorfullhash}{83f4643381c1cc2c483b4210498fedb0}
+      \strng{authorfullhashraw}{83f4643381c1cc2c483b4210498fedb0}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{internalsortvolume}{60}
+      \field{journaltitle}{International Journal of Computer Vision}
+      \field{title}{Distinctive Image Features from Scale-Invariant Keypoints}
+      \field{year}{2004}
+      \field{number}{2}
+      \range{number}{1}
+      \field{pages}{91\bibrangedash 110}
+      \range{pages}{20}
+      \field{volume}{60}
+      \range{volume}{1}
+      \verb{doi}
+      \verb 10.1023/B:VISI.0000029664.99615.94
+      \endverb
+    \endentry
+    \entry{rublee2011orb}{inproceedings}{useauthor=false}{}
+      \name{author}{4}{}{%
+        {{hash=0bb47e98134bf40d7a1305159e411dee}{%
+           family={Rublee},
+           familyi={R\bibinitperiod},
+           given={Ethan},
+           giveni={E\bibinitperiod}}}%
+        {{hash=2f19094c6a3c4b8289b0e2545d993850}{%
+           family={Rabaud},
+           familyi={R\bibinitperiod},
+           given={Vincent},
+           giveni={V\bibinitperiod}}}%
+        {{hash=7aa08b4f01b4f639731fdb416173ccd1}{%
+           family={Konolige},
+           familyi={K\bibinitperiod},
+           given={Kurt},
+           giveni={K\bibinitperiod}}}%
+        {{hash=a780b2fbd99e4f7ce78d33324e39d4c2}{%
+           family={Bradski},
+           familyi={B\bibinitperiod},
+           given={Gary},
+           giveni={G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{authorbibnamehash}{ec89b2297475b175019a601cfe2229a6}
+      \strng{authornamehash}{ec89b2297475b175019a601cfe2229a6}
+      \strng{authorfullhash}{50ca2b6817769790341c2b722e0b2ab3}
+      \strng{authorfullhashraw}{50ca2b6817769790341c2b722e0b2ab3}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2011 International Conference on Computer Vision (ICCV)}
+      \field{title}{{ORB}: An efficient alternative to {SIFT} or {SURF}}
+      \field{year}{2011}
+      \field{pages}{2564\bibrangedash 2571}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/ICCV.2011.6126544
+      \endverb
+    \endentry
+    \entry{rosten2006machine}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=712f75fa3873cef1c7e0971ca95a0237}{%
+           family={Rosten},
+           familyi={R\bibinitperiod},
+           given={Edward},
+           giveni={E\bibinitperiod}}}%
+        {{hash=7935612af661bcaae62a430e70094064}{%
+           family={Drummond},
+           familyi={D\bibinitperiod},
+           given={Tom},
+           giveni={T\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \strng{fullhash}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \strng{fullhashraw}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \strng{bibnamehash}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \strng{authorbibnamehash}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \strng{authornamehash}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \strng{authorfullhash}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \strng{authorfullhashraw}{c8dcfd13eb93dd0078708948c42b5a8a}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{European Conference on Computer Vision (ECCV)}
+      \field{title}{Machine learning for high-speed corner detection}
+      \field{year}{2006}
+      \field{pages}{430\bibrangedash 443}
+      \range{pages}{14}
+      \verb{doi}
+      \verb 10.1007/11744020_34
+      \endverb
+    \endentry
+    \entry{calonder2010brief}{article}{useauthor=false}{}
+      \name{author}{4}{}{%
+        {{hash=b9a113c9d085a4a71ae713401ef79cc1}{%
+           family={Calonder},
+           familyi={C\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=7187819964d2d08695068a3f668e2ed1}{%
+           family={Lepetit},
+           familyi={L\bibinitperiod},
+           given={Vincent},
+           giveni={V\bibinitperiod}}}%
+        {{hash=ae23b3cf4ee0a48d80793140e0a51611}{%
+           family={Strecha},
+           familyi={S\bibinitperiod},
+           given={Christoph},
+           giveni={C\bibinitperiod}}}%
+        {{hash=c5304d4d3b616054451f1a8db2a3974f}{%
+           family={Fua},
+           familyi={F\bibinitperiod},
+           given={Pascal},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{authorbibnamehash}{60b7048b8328319f6aa716e06f3f0eeb}
+      \strng{authornamehash}{60b7048b8328319f6aa716e06f3f0eeb}
+      \strng{authorfullhash}{49263fba46371eecf7d0e5249b7c825f}
+      \strng{authorfullhashraw}{49263fba46371eecf7d0e5249b7c825f}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{European Conference on Computer Vision (ECCV)}
+      \field{title}{{BRIEF}: Binary Robust Independent Elementary Features}
+      \field{year}{2010}
+      \field{pages}{778\bibrangedash 792}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1007/978-3-642-15561-1_56
+      \endverb
+    \endentry
+    \entry{mikolajczyk2005performance}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=15ba95a5d65938b99eaf1f46dd4c25b8}{%
+           family={Mikolajczyk},
+           familyi={M\bibinitperiod},
+           given={Krystian},
+           giveni={K\bibinitperiod}}}%
+        {{hash=58e4a9845eac42a4b0e5205cf0970fc0}{%
+           family={Schmid},
+           familyi={S\bibinitperiod},
+           given={Cordelia},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{namehash}{7754ef74182918a2ae94ae7327246382}
+      \strng{fullhash}{7754ef74182918a2ae94ae7327246382}
+      \strng{fullhashraw}{7754ef74182918a2ae94ae7327246382}
+      \strng{bibnamehash}{7754ef74182918a2ae94ae7327246382}
+      \strng{authorbibnamehash}{7754ef74182918a2ae94ae7327246382}
+      \strng{authornamehash}{7754ef74182918a2ae94ae7327246382}
+      \strng{authorfullhash}{7754ef74182918a2ae94ae7327246382}
+      \strng{authorfullhashraw}{7754ef74182918a2ae94ae7327246382}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{internalsortvolume}{27}
+      \field{journaltitle}{IEEE Transactions on Pattern Analysis and Machine Intelligence}
+      \field{title}{A performance evaluation of local descriptors}
+      \field{year}{2005}
+      \field{number}{10}
+      \range{number}{1}
+      \field{pages}{1615\bibrangedash 1630}
+      \range{pages}{16}
+      \field{volume}{27}
+      \range{volume}{1}
+      \verb{doi}
+      \verb 10.1109/TPAMI.2005.188
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

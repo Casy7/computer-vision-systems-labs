@@ -1,0 +1,582 @@
+% !TeX program = lualatex
+% !TeX TXS-program:bibliography = txs:///biber
+% !TeX spellcheck = uk_UA
+
+\documentclass[14pt, a4paper]{extarticle}
+
+% --- Мови та шрифти (згідно з ДСТУ) ---
+\usepackage{fontspec}
+\usepackage[english, ukrainian]{babel}
+\usepackage{csquotes}
+
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Courier New}[Scale=0.85]
+
+% --- Математичні пакети ---
+\usepackage{amsmath, amssymb, mathtools}
+
+% --- Оптимізація тексту для LuaLaTeX ---
+\usepackage[protrusion=true, expansion=true]{microtype}
+\emergencystretch=1.5em
+
+% --- Параметри сторінки згідно з ДСТУ 3008:2015 ---
+\usepackage[
+    left=30mm,
+    right=15mm,
+    top=20mm,
+    bottom=20mm,
+    footskip=10mm,
+    headheight=17pt
+]{geometry}
+
+% --- Міжрядковий інтервал (еквівалент 1.5 Word) та абзацний відступ ---
+\linespread{1.3}
+\usepackage{indentfirst}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+% --- Колонтитули та нумерація сторінок (вгорі праворуч, без лінійок) ---
+\usepackage{fancyhdr}
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \rhead{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+\pagestyle{plain}
+
+% --- Форматування заголовків згідно з ДСТУ 3008:2015 ---
+\usepackage[explicit]{titlesec}
+
+% Формат розділів (14pt, напівжирний, абзацний відступ 1.25cm)
+\titleformat{\section}[block]
+{\normalsize\bfseries\raggedright}
+{\thesection\ }
+{0pt}
+{#1}
+\titlespacing*{\section}{\parindent}{14pt}{7pt}
+
+% Формат підрозділів
+\titleformat{\subsection}[block]
+{\normalsize\bfseries\raggedright}
+{\thesubsection\ }
+{0pt}
+{#1}
+\titlespacing*{\subsection}{\parindent}{14pt}{7pt}
+
+% --- Списки (компактні, вирівняні за абзацним відступом) ---
+\usepackage{enumitem}
+\setlist{
+    nosep,
+    leftmargin=*,
+    labelindent=\parindent
+}
+\setlist[itemize]{label=---}
+
+% --- Підписи до рисунків та таблиць згідно з ДСТУ 3008:2015 ---
+\usepackage{caption}
+\usepackage{subcaption}
+\DeclareCaptionLabelSeparator{emdash}{ — }
+
+\captionsetup[figure]{
+    labelsep=emdash,
+    name={Рисунок},
+    justification=centering,
+    position=bottom,
+    font=normalsize
+}
+
+\captionsetup[table]{
+    labelsep=emdash,
+    name={Таблиця},
+    justification=raggedright,
+    singlelinecheck=false,
+    position=top,
+    font=normalsize
+}
+
+\captionsetup[sub]{
+    font=small,
+    labelformat=simple,
+    labelsep=space
+}
+\renewcommand\thesubfigure{(\alph{subfigure})}
+
+% --- Таблиці (книжковий стиль, нормальний інтервал) ---
+\usepackage{booktabs}
+\renewcommand{\arraystretch}{1.0}
+
+% --- Фрагменти коду ---
+\usepackage{xcolor}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\scriptsize\linespread{1.0}\selectfont,
+    breaklines=true,
+    breakatwhitespace=true,
+    columns=fullflexible,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue!80!black}\bfseries,
+    commentstyle=\color{green!50!black}\itshape,
+    stringstyle=\color{red!70!black},
+    showstringspaces=false,
+    tabsize=4,
+    xleftmargin=1.25cm
+}
+
+% --- Бібліографія згідно з ДСТУ 8302:2015 ---
+\usepackage[
+    backend=biber,
+    style=gost-numeric,
+    sorting=none,
+    autolang=other,
+    bibencoding=utf8
+]{biblatex}
+
+\renewcommand*{\newunitpunct}{\addperiod\space}
+\renewcommand*{\finentrypunct}{\addperiod}
+\DeclareDelimFormat[bib]{innametitledelim}{\addspace\slash\space}
+\DeclareFieldFormat{labelnumberwidth}{#1\adddot}
+\setlength{\biblabelsep}{0.5em}
+\setlength{\bibitemsep}{0.25em}
+
+\addbibresource{references.bib}
+
+% --- Графіка та гіперпосилання ---
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+
+% --- Додатки згідно з ДСТУ 3008:2015 ---
+\makeatletter
+\newcommand{\ukralph}[1]{\expandafter\@ukralph\csname c@#1\endcsname}
+\newcommand{\@ukralph}[1]{%
+    \ifcase#1\or А\or Б\or В\or Г\or Д\or Е\or Ж\or И\or К\or Л\or М\or Н\or П\or Р\or С\or Т\or У\or Ф\or Х\or Ц\or Ш\or Щ\or Ю\or Я\else\@ctrerr\fi}
+\makeatother
+
+\newcommand{\setupappendices}{
+    \setcounter{section}{0}
+    \renewcommand{\thesection}{ДОДАТОК \ukralph{section}}
+    \titleformat{\section}[block]
+    {\normalsize\bfseries\centering}
+    {}
+    {0pt}
+    {\MakeUppercase{##1}}
+    \titlespacing*{\section}{0pt}{14pt}{7pt}
+}
+
+% --- Завантаження модуля обробки таблиць Lua ---
+\directlua{dofile("tables.lua")}
+
+\begin{document}
+
+% --- Титульна сторінка ---
+\input{title}
+
+\section{Мета роботи}
+Теоретичне та практичне опанування математичних засад виявлення локальних геометричних ознак (детекторів) і формування їхніх компактних числових описів (дескрипторів) у комп'ютерному зорі; самостійна покрокова алгоритмічна реалізація класичного кутового детектора Гарріса--Стівенса; експериментальне дослідження фундаментальної ролі черговості операцій диференціювання та просторового згладжування; кількісна звірка точності власної реалізації з бібліотечною функцією \texttt{cv2.cornerHarris}; дослідження масштабної неінваріантності кутових ознак при децимації зображення; аналіз принципів побудови пірамід масштабів, орієнтаційного вирівнювання та формування градієнтних (SIFT) і бінарних (ORB) дескрипторів; порівняння їхньої просторово-часової ефективності; проведення вичерпного експериментального тестування на повторюваність (repeatability) детектування точок в умовах контрольованих геометричних (обертання, масштабування) та радіометричних (зміна яскравості, адитивний шум) спотворень.
+
+\section{Вихідні дані}
+\begin{itemize}
+    \item \textbf{Апаратне забезпечення}: смартфон Google Pixel 5. Основний фотомодуль: об'єктив із фізичною фокусною відстанню $f = 4.38$~мм (еквівалент $25$~мм для $35$-мм плівки), світлосила $f/1.73$, оптичний CMOS-сенсор формату $1/2.55''$ із фізичним розміром пікселя $1.4 \times 1.4$~мкм. Ультраширококутний модуль кадру \texttt{tree.jpg}: $f = 2.22$~мм ($16$~мм екв.), діафрагма $f/2.2$.
+    \item \textbf{Тестовий набір зображень (\texttt{lab03/data/})}: 4 повнорозмірні фотографії природних та штучних сцен високої просторової роздільності $4032 \times 2268$ пікселів ($12.2$~Мп, колірна глибина $24$~біт, 3 канали BGR, без субдискретизації):
+    \begin{itemize}
+        \item \texttt{paintings.jpg} --- базове зображення картинної галереї: складна геометрія картинних рам, текстурні мазки пензля, виразні кутові контрасти ($1/30$~с, ISO~52).
+        \item \texttt{alley.jpg} --- перспектива алеї парку: прямі бруківки, ліхтарі, стовбури дерев, протяжні лінії тіней ($1/100$~с, ISO~48).
+        \item \texttt{river.jpg} --- природний ландшафт річкової набережної: хвилі води, каміння берегової лінії, дальні споруди ($1/616$~с, ISO~58).
+        \item \texttt{tree.jpg} --- ультраширококутний знімок крони дерева: дрібна фрактальна текстура листя, переплетення гілок, високий динамічний діапазон неба ($1/1185$~с, ISO~37).
+    \end{itemize}
+\end{itemize}
+
+\section{Теоретичні відомості}
+
+\subsection{Математичний апарат кутового детектора Гарріса}
+Кутовий детектор Гарріса--Стівенса~\cite{harris1988combined} ґрунтується на оцінці локальної функції автокореляції інтенсивності при малому просторовому зсуві вікна $(\Delta x, \Delta y)$:
+\begin{equation}
+    E(\Delta x, \Delta y) = \sum_{u, v} w(u, v) \left[ I(x + u + \Delta x, y + v + \Delta y) - I(x + u, y + v) \right]^2,
+\end{equation}
+де $w(u, v)$ --- просторове вагове вікно (двовимірний фільтр Гауса із дисперсією $\sigma^2$). Розкладаючи вираз у ряд Тейлора першого порядку за зсувом:
+\begin{equation}
+    I(x + u + \Delta x, y + v + \Delta y) \approx I(x + u, y + v) + I_x(u, v) \Delta x + I_y(u, v) \Delta y,
+\end{equation}
+отримуємо квадратичну форму:
+\begin{equation}
+    E(\Delta x, \Delta y) \approx \begin{bmatrix} \Delta x & \Delta y \end{bmatrix} M \begin{bmatrix} \Delta x \\ \Delta y \end{bmatrix},
+\end{equation}
+де $M$ --- структурний тензор (матриця других моментів градієнта):
+\begin{equation}
+    M = \sum_{u, v} w(u, v) \begin{bmatrix} I_x^2 & I_x I_y \\ I_x I_y & I_y^2 \end{bmatrix} = \begin{bmatrix} A & C \\ C & B \end{bmatrix}.
+\end{equation}
+Власні числа $\lambda_1, \lambda_2$ матриці $M$ характеризують швидкість зміни яскравості у напрямках головних осей еліпса розсіювання:
+\begin{itemize}
+    \item $\lambda_1 \approx 0, \lambda_2 \approx 0$ --- однорідна плоска ділянка (відсутність інформативних ознак);
+    \item $\lambda_1 \gg 0, \lambda_2 \approx 0$ (або навпаки) --- прямолінійний контур/ребро (градієнт є виразним лише в одному напрямку, проблема апертури);
+    \item $\lambda_1 \gg 0, \lambda_2 \gg 0$ --- кутова точка (виразний градієнт в обох ортогональних напрямках).
+\end{itemize}
+
+Щоб уникнути прямого спектрального розкладу матриці $2 \times 2$, використовують інваріантний відгук Гарріса:
+\begin{equation}
+    R = \det(M) - k \cdot (\operatorname{trace}(M))^2 = (A B - C^2) - k \cdot (A + B)^2,
+\end{equation}
+де емпіричний параметр $k \in [0.04, 0.06]$.
+
+\subsection{Математичне обґрунтування черговості операцій}
+Принциповим є порядок операцій: \textbf{спершу обчислення поелементних добутків градієнтів, і лише потім їхнє вагове згладжування Гаусом}. Нехай градієнт у точці задається вектором $\nabla I = (I_x, I_y)^T$. Тензор $T = \nabla I \cdot (\nabla I)^T$ для \emph{окремо взятого} пікселя має ранг 1:
+\begin{equation}
+    \det(T) = I_x^2 I_y^2 - (I_x I_y)^2 \equiv 0.
+\end{equation}
+Якщо спочатку згладити самі компоненти градієнта $\tilde{I}_x = G_\sigma * I_x$, $\tilde{I}_y = G_\sigma * I_y$, а потім скласти тензор із них без осереднення по сусідству, його визначник залишиться тотожним нулем:
+\begin{equation}
+    \det(\tilde{T}) = \tilde{I}_x^2 \tilde{I}_y^2 - (\tilde{I}_x \tilde{I}_y)^2 \equiv 0.
+\end{equation}
+У такому разі відгук набуває строго недодатних значень:
+\begin{equation}
+    R_{\text{wrong}} = 0 - k (\tilde{I}_x^2 + \tilde{I}_y^2)^2 \le 0,
+\end{equation}
+і жоден кут не може бути детектований у принципі. Лише локальне осереднення матриць рангу 1 із різними просторовими орієнтаціями градієнта породжує повнорангову матрицю $M$ із $\operatorname{rank}(M) = 2$ та $\det(M) > 0$.
+
+\subsection{Природа масштабної неінваріантності Гарріса}
+Детектор Гарріса оперує фіксованим просторовим масштабом, який задається розміром собелівського диференціювання ($\sigma_D$) та розміром гауссового вікна інтегрування ($\sigma_I = 1.5$~пк). Якщо зображення зменшується у 2 рази, геометричний розмір кута скорочується у просторі пікселів удвічі. Деталі з високою просторовою частотою пригнічуються фільтром низьких частот, а кути більшого масштабу зміщують свій відгук. Як наслідок, класичний детектор Гарріса не є масштабно-інваріантним~\cite{szeliski2022computer}.
+
+\subsection{Детектор і дескриптор SIFT}
+Алгоритм SIFT (Scale-Invariant Feature Transform)~\cite{lowe2004distinctive} забезпечує інваріантність до масштабу та повороту:
+\begin{enumerate}
+    \item \textbf{Простір масштабів}: будується піраміда октав із каскадом фільтрів Гауса $L(x, y, \sigma) = G(x, y, \sigma) * I(x, y)$.
+    \item \textbf{Різниця гауссіан (DoG)}: обчислюється $D(x, y, \sigma) = L(x, y, k\sigma) - L(x, y, \sigma)$, що наближає нормований лапласіан $\sigma^2 \nabla^2 G$.
+    \item \textbf{Екстремуми в 3D (простір-масштаб)}: кандидат порівнюється із 26 сусідами у вікні $3 \times 3 \times 3$.
+    \item \textbf{Субпіксельна локалізація та фільтрація}: застосовується субпіксельне уточнення через 3D ряд Тейлора; точки із низьким контрастом ($|D| < 0.03$) або крайовим відгуком (критерій відношення головних кривин гессіана $\operatorname{tr}^2(H)/\det(H) > (r+1)^2/r$) відсікаються.
+    \item \textbf{Орієнтація}: будується 36-бінова гістограма градієнтів у околі точки; домінуючий пік призначається базовим кутом $\theta$.
+    \item \textbf{Дескриптор}: окіл $16 \times 16$ розбивається на $4 \times 4$ підоколів, у кожному з яких формується 8-бінова гістограма орієнтацій. Разом формується $4 \times 4 \times 8 = 128$-вимірний нормалізований вектор дійсних чисел (\texttt{float32}, $512$~байт).
+\end{enumerate}
+
+\subsection{Детектор і дескриптор ORB}
+Алгоритм ORB (Oriented FAST and Rotated BRIEF)~\cite{rublee2011orb} розроблений як швидка обчислювальна альтернатива:
+\begin{enumerate}
+    \item \textbf{Детектор oFAST}: швидкий кутовий детектор FAST-9~\cite{rosten2006machine} на піраміді масштабів із 8 рівнів. Орієнтація визначається через інтенсивнісний центроїд патча $C = (m_{10}/m_{00}, m_{01}/m_{00})$:
+    \begin{equation}
+        \theta = \operatorname{atan2}(m_{01}, m_{10}), \quad m_{pq} = \sum_{x, y} x^p y^q I(x, y).
+    \end{equation}
+    \item \textbf{Дескриптор rBRIEF}: набір із 256 пар бінарних тестів BRIEF~\cite{calonder2010brief}, повернутих на кут $\theta$ точки. Результатом є бінарний вектор довжиною 256 біт (32 байти типу \texttt{uint8}). Відстань між дескрипторами обчислюється через відстань Геммінга апаратними інструкціями побітового XOR та POPCNT.
+\end{enumerate}
+
+\subsection{Метрика повторюваності (Repeatability)}
+За методикою Міколайчика та Шмід~\cite{mikolajczyk2005performance}, повторюваність вимірює здатність детектора знаходити ті самі фізичні 3D-точки сцени на двох кадрах, пов'язаних відомим проєктивним перетворенням $H$:
+\begin{equation}
+    \text{Repeatability} = \frac{|\{ p_1 \in P_{1, \text{vis}} \mid \exists p_2 \in P_{2, \text{vis}} : \| H p_1 - p_2 \|_2 < \varepsilon \}|}{\min(|P_{1, \text{vis}}|, |P_{2, \text{vis}}|)} \times 100\%,
+\end{equation}
+де $P_{1, \text{vis}}$ та $P_{2, \text{vis}}$ --- підмножини точок, чиї проєкції потрапляють у спільне взаємно-видиме поле зору (co-visible region) з відступом від меж кадру, а $\varepsilon = 3.0$~пікселя --- допустима похибка просторової локалізації.
+
+\section{Хід роботи}
+\begin{enumerate}
+    \item \textbf{Частина A (Власна реалізація Гарріса)}:
+    \begin{itemize}
+        \item Вхідне півтонове зображення переведено у тип \texttt{float32};
+        \item Обчислено похідні $I_x, I_y$ оператором Собеля з $k=3$;
+        \item Сформовано поелементні квадрати та добутки $I_x^2, I_y^2, I_x I_y$;
+        \item Згладжено компоненти двовимірним фільтром Гауса із $\sigma = 1.5$ (\texttt{cv2.GaussianBlur});
+        \item Розраховано карту відгуку $R = (A B - C^2) - 0.04 (A + B)^2$;
+        \item Застосовано відносний поріг $R > 0.01 \cdot \max(R)$;
+        \item Виконано немаксимальне придушення (NMS) із радіусом $r = 10$~пк та обмеженням $N = 1000$ точок;
+        \item Проведено порівняння з бібліотечною реалізацією \texttt{cv2.cornerHarris} та перевірено колапс відгуку при зміні черговості операцій.
+    \end{itemize}
+
+    \item \textbf{Частина B (Чутливість до масштабу)}:
+    \begin{itemize}
+        \item Тестовий кадр зменшено удвічі (\texttt{cv2.INTER\_AREA});
+        \item Запущено власний детектор на обох масштабах;
+        \item Точки зменшеного кадру спроєктовано в систему координат оригіналу ($\times 2$);
+        \item Обчислено частку збігів у межах $\varepsilon = 3$~пк та медіанне зміщення координат.
+    \end{itemize}
+
+    \item \textbf{Частина C (Дослідження SIFT та ORB)}:
+    \begin{itemize}
+        \item Ініціалізовано детектори \texttt{cv2.SIFT\_create()} та \texttt{cv2.ORB\_create(nfeatures=1000)};
+        \item Виміряно час обчислення точок і дескрипторів, їхню розмірність та тип даних;
+        \item Побудовано оглядові та детальні візуалізації з відображенням масштабу й орієнтації (\texttt{DRAW\_RICH\_KEYPOINTS}).
+    \end{itemize}
+
+    \item \textbf{Частина D (Експерименти на повторюваність)}:
+    \begin{itemize}
+        \item Сформовано набір відомих матриць $H$: поворот $\theta \in [0^\circ, 90^\circ]$ із кроком $10^\circ$; масштаб $s \in [0.5, 2.0]$ із кроком $0.25$; яскравість $\times [0.5, 1.5]$ із кроком $0.1$; гауссів шум $\sigma \in [0, 20]$ із кроком $5$;
+        \item Забезпечено умови коректності порівняння: однаковий ліміт $N = 1000$, радіус NMS $r = 10$~пк, поріг $\varepsilon = 3.0$~пк, усереднення результатів за 4 зображеннями набору;
+        \item Побудовано окремі та зведені графіки повторюваності для Harris, SIFT та ORB.
+    \end{itemize}
+\end{enumerate}
+
+\section{Результати експериментів}
+
+\subsection{Власна реалізація та верифікація детектора Гарріса}
+На рисунку~\ref{fig:harris_pipe} наведено покрокову візуалізацію проміжних масивів детектора Гарріса на характерному фрагменті зображення \texttt{paintings.jpg}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\textwidth]{../figures/a_harris_pipeline.png}
+    \caption{Покрокова візуалізація конвеєра власної реалізації детектора Гарріса: (а) вхідний фрагмент кадру; (б) градієнт $I_x$; (в) градієнт $I_y$; (г) згладжений тензор $A = \langle I_x^2 \rangle_{\sigma=1.5}$; (д) карта відгуку $R$; (е) відібрані кути після порогової фільтрації та NMS}
+    \label{fig:harris_pipe}
+\end{figure}
+
+На рисунку~\ref{fig:harris_cv_comp} проілюстровано просторове співставлення точок власного детектора з бібліотечною функцією \texttt{cv2.cornerHarris} та гістограму евклідових нев'язок між найближчими відповідниками.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\textwidth]{../figures/a_custom_vs_cv.png}
+    \caption{Порівняння власного детектора Гарріса та \texttt{cv2.cornerHarris}: (а) просторовий оверлей кутових точок на фрагменті; (б) розподіл нев'язок зміщення між точками}
+    \label{fig:harris_cv_comp}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Кількісна звірка точності власної реалізації детектора Гарріса з функцією \texttt{cv2.cornerHarris}}
+\label{tab:harris_verif}
+\scriptsize\linespread{1.0}\selectfont
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Зображення} & \textbf{Точок} & \textbf{cv3 ($<2$ пк)} & \textbf{cv3 ($<3$ пк)} & \textbf{Медіана cv3} & \textbf{cv5 ($<2$ пк)} & \textbf{cv5 ($<3$ пк)} & \textbf{Box vs cv3} \\
+\midrule
+\directlua{tab_harris_verification()}
+\bottomrule
+\end{tabular}
+\end{table}
+
+Як свідчить таблиця~\ref{tab:harris_verif}, при використанні еквівалентного прямокутного вікна (\texttt{boxFilter}, $3 \times 3$) збіг точок становить строго $100.0\%$, що підтверджує абсолютну алгоритмічну точність реалізації. При застосуванні рекомендованого практикумом згладжування Гаусом із $\sigma = 1.5$ ($11 \times 11$ еквівалент) збіг із \texttt{blockSize=3} складає $75.1\%--76.6\%$ (медіанне зміщення $1.0$~пк), а при порівнянні з \texttt{blockSize=5} зростає до $83.3\%--85.5\%$.
+
+Експеримент із порушенням черговості операцій (згладжування ДО піднесення до квадрата) показав повний колапс: максимальне значення відгуку впало до $R_{\max} = 0.0$, оскільки визначник $\det(\tilde{T})$ став тотожним нулем ($< 10^{-10}$), і алгоритм відібрав рівно $0$ точок, що повністю підтверджує аналітичне попередження Кроку 8 практикуму.
+
+\subsection{Дослідження чутливості Гарріса до масштабу}
+На рисунку~\ref{fig:scale_sens} наведено результат просторового співставлення кутів оригінального зображення та зменшеного вдвічі кадру, масштабованих назад у систему координат оригіналу ($\times 2$).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\textwidth]{../figures/b_scale_comparison.png}
+    \caption{Ілюстрація неінваріантності детектора Гарріса до масштабу ($\times 2$): (а) просторова неузгодженість кутів оригіналу та збільшених кутів зменшеного кадру; (б) гістограма евклідових зміщень}
+    \label{fig:scale_sens}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Кількісна оцінка чутливості детектора Гарріса до 2-кратного масштабування}
+\label{tab:scale_sens}
+\footnotesize\linespread{1.0}\selectfont
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Зображення} & \textbf{$N_{\text{orig}}$} & \textbf{$N_{\text{half}}$} & \textbf{Збіг $<2$ пк} & \textbf{Збіг $<3$ пк} & \textbf{Збіг $<5$ пк} & \textbf{Медіана} & \textbf{SIFT ($<3$ пк)} \\
+\midrule
+\directlua{tab_scale_sensitivity()}
+\bottomrule
+\end{tabular}
+\end{table}
+
+З таблиці~\ref{tab:scale_sens} та рисунка~\ref{fig:scale_sens} випливає, що частка точок, які зберегли свою локалізацію в межах допустимої похибки $3$ пікселі, становить лише $23.6\%--30.5\%$ (медіанне відхилення сягає $10.2--18.4$~пк). Це наочно і кількісно доводить масштабну нестабільність одномасштабного детектора Гарріса.
+
+\subsection{Порівняльний аналіз SIFT та ORB}
+На рисунку~\ref{fig:rich_full} наведено загальний вигляд зображення кадру \texttt{paintings.jpg} із побудованими орієнтованими масштабованими колами (Rich Keypoints) для SIFT та ORB.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../figures/c_rich_keypoints_full.png}
+    \caption{Оглядове відображення ключових точок у режимі \texttt{DRAW\_RICH\_KEYPOINTS}: (а) SIFT ($1000$ точок); (б) ORB ($1000$ точок)}
+    \label{fig:rich_full}
+\end{figure}
+
+Для детального аналізу структури масштабу та орієнтації на рисунку~\ref{fig:rich_crop} наведено збільшений фрагмент зони картинних рам.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\textwidth]{../figures/c_rich_keypoints_crop.png}
+    \caption{Детальний вигляд ключових точок на фрагменті сцени: (а) SIFT (різноманітні просторові радіуси $\sigma$); (б) ORB (кути FAST із кутом центроїда)}
+    \label{fig:rich_crop}
+\end{figure}
+
+На рисунку~\ref{fig:scale_angle_dist} показано статистичні розподіли масштабів та кутів орієнтації точок SIFT та ORB.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../figures/c_scale_angle_distribution.png}
+    \caption{Статистичні розподіли параметрів точок SIFT та ORB: (а) характерний просторовий масштаб; (б) кут орієнтації $\theta \in [0^\circ, 360^\circ)$}
+    \label{fig:scale_angle_dist}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Порівняння обчислювальної ефективності та розмірностей SIFT та ORB}
+\label{tab:detector_bench}
+\scriptsize\linespread{1.0}\selectfont
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Зображення} & \textbf{SIFT (всі)} & \textbf{Час (всі)} & \textbf{SIFT ($1000$)} & \textbf{Час SIFT} & \textbf{ORB ($1000$)} & \textbf{Час ORB} & \textbf{Прискорення} \\
+\midrule
+\directlua{tab_detector_benchmarks()}
+\bottomrule
+\end{tabular}
+\end{table}
+
+З таблиці~\ref{tab:detector_bench} видно, що алгоритм ORB працює у $3.8--7.8$ раза швидше за SIFT при фіксованому ліміті в $1000$ точок (витрачаючи всього $73--157$~мс проти $569--630$~мс на зображенні $12.2$~Мп). Крім того, бінарний дескриптор ORB (32 байти) є у $16$ разів компактнішим за 128-вимірний вектор SIFT ($512$ байтів).
+
+\subsection{Експериментальне оцінювання повторюваності (Repeatability)}
+На рисунках~\ref{fig:rep_rot}--\ref{fig:rep_noise} наведено залежності повторюваності трьох детекторів (Harris, SIFT, ORB) від параметрів чотирьох типів спотворень.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../figures/d_repeatability_rotation.png}
+        \caption{Повторюваність за повороту}
+        \label{fig:rep_rot}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../figures/d_repeatability_scale.png}
+        \caption{Повторюваність за масштабу}
+        \label{fig:rep_scale}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../figures/d_repeatability_brightness.png}
+        \caption{Повторюваність за яскравості}
+        \label{fig:rep_bright}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../figures/d_repeatability_noise.png}
+        \caption{Повторюваність за шуму $\sigma$}
+        \label{fig:rep_noise}
+    \end{minipage}
+\end{figure}
+
+На рисунку~\ref{fig:rep_overview} представлено зведену матрицю результатів експериментів для зручного порівняльного аналізу.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\textwidth]{../figures/d_repeatability_overview.png}
+    \caption{Зведена панель експериментів на повторюваність детекторів Harris, SIFT та ORB в однакових умовах ($N=1000, r=10$~пк, $\varepsilon=3.0$~пк): (а) поворот $0^\circ$--$90^\circ$; (б) масштаб $0.5$--$2.0$; (в) множник яскравості $0.5$--$1.5$; (г) гауссів шум $\sigma \in [0, 20]$}
+    \label{fig:rep_overview}
+\end{figure}
+
+Числові значення усередненої повторюваності та стандартного відхилення наведено у таблицях~\ref{tab:rep_rot}--\ref{tab:rep_noise}.
+
+\begin{table}[htbp]
+\centering
+\caption{Повторюваність детекторів за обертання кадру ($\theta \in [0^\circ, 90^\circ]$)}
+\label{tab:rep_rot}
+\footnotesize\linespread{1.0}\selectfont
+\begin{tabular}{lccc}
+\toprule
+\textbf{Кут повороту} & \textbf{Harris, \%} & \textbf{SIFT, \%} & \textbf{ORB, \%} \\
+\midrule
+\directlua{tab_rep_rotation()}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Повторюваність детекторів за зміни просторового масштабу ($s \in [0.5, 2.0]$)}
+\label{tab:rep_scale}
+\footnotesize\linespread{1.0}\selectfont
+\begin{tabular}{lccc}
+\toprule
+\textbf{Масштаб $s$} & \textbf{Harris, \%} & \textbf{SIFT, \%} & \textbf{ORB, \%} \\
+\midrule
+\directlua{tab_rep_scale()}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Повторюваність детекторів за зміни яскравості кадру ($\times [0.5, 1.5]$)}
+\label{tab:rep_bright}
+\footnotesize\linespread{1.0}\selectfont
+\begin{tabular}{lccc}
+\toprule
+\textbf{Множник яскравості} & \textbf{Harris, \%} & \textbf{SIFT, \%} & \textbf{ORB, \%} \\
+\midrule
+\directlua{tab_rep_brightness()}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Повторюваність детекторів за адитивного гауссового шуму ($\sigma \in [0, 20]$)}
+\label{tab:rep_noise}
+\footnotesize\linespread{1.0}\selectfont
+\begin{tabular}{lccc}
+\toprule
+\textbf{Шум $\sigma$} & \textbf{Harris, \%} & \textbf{SIFT, \%} & \textbf{ORB, \%} \\
+\midrule
+\directlua{tab_rep_noise()}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Аналіз результатів}
+\begin{enumerate}
+    \item \textbf{Природа інваріантності до повороту}:
+    При повороті кадру на $30^\circ$ повторюваність SIFT склала $76.21\%$, що з запасом перекриває нормативне контрольне значення практикуму ($\ge 60\%$). Власний детектор Гарріса показав стійкість $85.16\%$, а ORB --- $70.44\%$. При повороті рівно на $90^\circ$ точність Гарріса досягає $99.36\%$, оскільки координатна сітка дискретних похідних Собеля переходить сама в себе ($I_x \to I_y$, $I_y \to -I_x$).
+    
+    \item \textbf{Поведінка за зміни масштабу}:
+    При збільшенні масштабу ($s \ge 1.25$) SIFT демонструє найвищу стабільність серед усіх детекторів, досягаючи $86.78\%$ при $s=2.0$, завдяки успішній локалізації кутів на верхніх октавах простору масштабів. При сильному зменшенні ($s=0.5$) одномасштабні структури деградують у всіх алгоритмів: висока щільність точок на зменшеному полі та похибка дискретизації сітки призводять до падіння повторюваності.
+
+    \item \textbf{Асиметрія радіометричної стійкості до яскравості}:
+    При зменшенні яскравості ($s \in [0.5, 1.0]$) усі детектори зберігають повторюваність на рівні $95--99\%$. Оскільки лінійне множення яскравості масштабує градієнти як $c \cdot \nabla I$, відносний порядок локальних максимумів $R \propto c^4$ та екстремумів DoG не змінюється. Натомість при штучному освітленні ($s > 1.0$) повторюваність різко падає до $30--38\%$ через насичення датчика (кліпування у біле на рівні 255), що фізично знищує градієнтні структури у світлих зонах кадру.
+
+    \item \textbf{Стійкість до високочастотного шуму}:
+    Зі зростанням дисперсії шуму до $\sigma = 20$ повторюваність усіх методів плавно знижується до $61--65\%$. Гауссове згладжування структурного тензора детектора Гарріса ($\sigma=1.5$) та розмиття октав SIFT діють як ефективні фільтри низьких частот, захищаючи ключові максимуми від випадкових флуктуацій.
+\end{enumerate}
+
+\section{Висновки}
+\begin{enumerate}
+    \item Успішно розроблено та протестовано повний конвеєр власного кутового детектора Гарріса--Стівенса згідно з вимогами Кроків 1--7 практикуму.
+    \item Доведено експериментально та аналітично, що зміна черговості операцій (згладжування ДО піднесення градієнтів до квадрата) призводить до виродження структурного тензора в ранг 1 ($\det(M) \equiv 0$), у результаті чого відгук стає строго недодатним ($R \le 0$) і детектується рівно $0$ кутів.
+    \item При використанні еквівалентного вікна \texttt{boxFilter} збіг власного детектора з \texttt{cv2.cornerHarris} склав строго $100.0\%$, а з рекомендованою гауссіаною ($\sigma=1.5$) досяг $83.3--85.5\%$ збігу в межах 3 пікселів із медіанним зміщенням $1.0$~пк.
+    \item Кількісно продемонстровано масштабну неінваріантність детектора Гарріса: при 2-кратному зменшенні зображення лише $23.6--30.5\%$ точок зберігають локалізацію в межах $\varepsilon = 3$~пк, а медіанна нев'язка координат сягає $10.2--18.4$~пк.
+    \item Порівняння SIFT та ORB на 12.2-Мп кадрах показало, що ORB працює у $3.8--7.8$ раза швидше ($73--157$~мс проти $569--630$~мс) та формує дескриптор у 16 разів меншого обсягу пам'яті (32 байти проти 512 байтів), тоді як SIFT забезпечує кращу теоретичну якість на масштабах $s > 1.0$.
+    \item Експерименти на повторюваність підтвердили всі нормативні контрольні критерії: повторюваність SIFT при повороті на $30^\circ$ становить $76.21\%$ (при орієнтирі $> 60\%$), а стійкість до зміни освітленості зберігається на рівні $97.5\%$ у діапазоні без кліпування.
+\end{enumerate}
+
+\section{Декларація про використання генеративного ШІ}
+Під час виконання лабораторної роботи інструменти генеративного штучного інтелекту (Google Antigravity Addon для VSCode, Gemini) використовувалися як засіб автоматизації інженерних розрахунків, написання скриптів обробки зображень у середовищі Python, статистичного аналізу результатів вибірки, а також значною мірою для наукової верстки звіту в середовищі LuaLaTeX за національними стандартами України ДСТУ 3008:2015 та ДСТУ 8302:2015. Усі числові результати, метрики, графічні залежності та таблиці отримані на основі реальних розрахунків над наданими фотографіями.
+
+\clearpage
+\begingroup
+\fontsize{11pt}{14pt}\selectfont
+\linespread{1.0}\selectfont
+\setlength{\bibitemsep}{0.3em}
+\printbibliography[
+    title={СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ},
+    heading=bibintoc
+]
+\endgroup
+
+\clearpage
+\appendix
+\setupappendices
+
+\section{Лістинги вихідного коду програми}
+
+\subsection*{1. Спільні утиліти, константи та метрики (\texttt{common.py})}
+\lstinputlisting[language=Python, caption={Модуль налаштувань, метрик та детектування (\texttt{common.py})}]{../src/common.py}
+
+\clearpage
+\subsection*{2. Частина A: Власна реалізація детектора Гарріса (\texttt{part\_a.py})}
+\lstinputlisting[language=Python, caption={Скрипт конвеєра Гарріса та звірки з бібліотекою (\texttt{part\_a.py})}]{../src/part_a.py}
+
+\clearpage
+\subsection*{3. Частина B: Чутливість Гарріса до масштабу (\texttt{part\_b.py})}
+\lstinputlisting[language=Python, caption={Скрипт перевірки масштабної неінваріантності (\texttt{part\_b.py})}]{../src/part_b.py}
+
+\clearpage
+\subsection*{4. Частина C: Дослідження SIFT та ORB (\texttt{part\_c.py})}
+\lstinputlisting[language=Python, caption={Скрипт порівняння SIFT та ORB дескрипторів (\texttt{part\_c.py})}]{../src/part_c.py}
+
+\clearpage
+\subsection*{5. Частина D: Експерименти на повторюваність (\texttt{part\_d.py})}
+\lstinputlisting[language=Python, caption={Скрипт вимірювання повторюваності за відомих перетворень (\texttt{part\_d.py})}]{../src/part_d.py}
+
+\end{document}
+

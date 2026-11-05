@@ -1,0 +1,5 @@
+Image,Points_Orig,Points_Half,Harris_Match_lt2px_pct,Harris_Match_lt3px_pct,Harris_Match_lt5px_pct,Harris_Median_Dist_px,SIFT_Match_lt3px_pct
+alley.jpg,1000,1000,16.30,27.00,34.70,13.00,25.10
+paintings.jpg,1000,1000,17.90,30.50,38.70,10.22,30.90
+river.jpg,1000,1000,16.10,25.90,33.70,16.34,17.90
+tree.jpg,1000,1000,13.50,23.60,29.70,18.38,8.20
