@@ -1,3 +1,3 @@
 pair,kp_src,kp_dst,overlap_cov_dst_pct,overlap_cov_src_pct
-angle4-angle5,28624,12182,69.4,93.0
-scale3-scale4,53341,9793,41.4,100.0
+pano_1-pano_2,3929,3562,68.7,40.5
+pano_4-pano_5,4037,2409,65.9,38.6

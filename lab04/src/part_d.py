@@ -1,14 +1,6 @@
 """
 Лабораторна робота № 4. Частина D: Побудова панорами (Кроки 13-16).
-
-Вибір сцени. Гомографія точно описує зв'язок двох кадрів лише у двох випадках:
-(1) камера обертається навколо оптичного центру (без зміщення), або (2) сцена плоска.
-Серія angle1-angle10 знята обходом камери навколо об'ємного HDD, тому вона не задовольняє
-жодну з умов (див. Частину E). Для коректної панорами використано серію кадрів
-lab02/data/corners: шахова дошка, що лежить на столі, знята з різних положень камери.
-Стіл і дошка утворюють одну площину, тому гомографія між кадрами фізично точна.
-
-- Крок 13: Гомографії сусідніх пар (власний RANSAC), опорний -- центральний кадр, ланцюгове множення;
+- Крок 13: Гомографії сусідніх пар (власний RANSAC), опорний -- центральний кадр pano_3, ланцюгове множення;
 - Крок 14: Розмір полотна за проєкціями кутів кадрів, додатний зсув T;
 - Крок 15: cv2.warpPerspective + лінійний перехід (feathering) у зонах перекриття;
 - Крок 16: Середня похибка репроєкції на узгоджених точках усіх пар + перевірка накопичення
@@ -20,24 +12,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from common import (
-    ROOT_DIR, RESULTS_DIR, FIGURES_DIR,
+    DATA_DIR, RESULTS_DIR, FIGURES_DIR,
     imread_bgr, save_csv,
     extract_sift_features, apply_mutual_match,
-    compute_reprojection_errors, custom_ransac_homography, stitch_panorama_sequence,
-    homography_corner_distance
+    compute_reprojection_errors, custom_ransac_homography, stitch_panorama_sequence
 )
 
-DATA_PANO_DIR = os.path.join(ROOT_DIR, "lab02", "data", "corners")
-FRAME_NAMES = ["corner_7", "corner_6", "corner_4", "corner_5", "corner_3"]  # зліва направо
-REF_IDX = 2  # corner_4
-SCALE = 0.5
+FRAME_NAMES = ["pano_1", "pano_2", "pano_3", "pano_4", "pano_5"]  # зліва направо
+REF_IDX = 2  # pano_3
 
 
-def load_frames(names, data_dir, scale):
+def load_frames(names, data_dir):
     imgs, feats = [], []
     for name in names:
         img = imread_bgr(os.path.join(data_dir, f"{name}.jpg"))
-        img = cv2.resize(img, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
         kps, desc = extract_sift_features(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
         imgs.append(img)
         feats.append((kps, desc))
@@ -77,7 +65,7 @@ def run_part_d():
     print("=" * 60)
 
     n = len(FRAME_NAMES)
-    images, feats = load_frames(FRAME_NAMES, DATA_PANO_DIR, SCALE)
+    images, feats = load_frames(FRAME_NAMES, DATA_DIR)
     h, w = images[0].shape[:2]
 
     # Крок 13 + 16: сусідні пари
@@ -107,18 +95,22 @@ def run_part_d():
     chain_rows = []
     for i in (0, n - 1):
         H_dir, m_dir, cand_d, src_d, dst_d, _ = estimate_pair(feats[i], feats[REF_IDX])
-        corner_d = homography_corner_distance(H_to_ref[i], H_dir / H_dir[2, 2], (h, w))
         e_chain = compute_reprojection_errors(src_d[m_dir], dst_d[m_dir], H_to_ref[i])
         e_direct = compute_reprojection_errors(src_d[m_dir], dst_d[m_dir], H_dir)
-        print(f"Ланцюг {FRAME_NAMES[i]} -> {FRAME_NAMES[REF_IDX]}: зміщення кутів (ланцюг vs пряма) = {corner_d:.2f} пк; "
+        p_dir = cv2.perspectiveTransform(src_d[m_dir].reshape(-1, 1, 2), H_dir).reshape(-1, 2)
+        p_chn = cv2.perspectiveTransform(src_d[m_dir].reshape(-1, 1, 2), H_to_ref[i]).reshape(-1, 2)
+        overlap_diff = float(np.mean(np.linalg.norm(p_dir - p_chn, axis=1)))
+        print(f"Ланцюг {FRAME_NAMES[i]} -> {FRAME_NAMES[REF_IDX]}: розбіжність у зоні перекриття = {overlap_diff:.2f} пк; "
               f"похибка на {int(m_dir.sum())} прямих inliers: ланцюг {e_chain.mean():.2f} пк, пряма {e_direct.mean():.2f} пк")
         chain_rows.append([f"{FRAME_NAMES[i]}-{FRAME_NAMES[REF_IDX]}", int(m_dir.sum()),
-                           f"{e_direct.mean():.2f}", f"{e_chain.mean():.2f}", f"{corner_d:.2f}"])
+                           f"{e_direct.mean():.2f}", f"{e_chain.mean():.2f}", f"{overlap_diff:.2f}"])
     save_csv(os.path.join(RESULTS_DIR, "d_chain_check.csv"),
              ["pair", "direct_inliers", "err_direct", "err_chain", "corner_diff_px"], chain_rows)
 
     # Кроки 14-15
-    pano_crop, pano_full, canvas, offset = stitch_panorama_sequence(images, H_to_ref)
+    pano_crop, pano_full, canvas, offset, valid_polys, norm_H_list = stitch_panorama_sequence(
+        images, H_to_ref, min_w_rel=0.28, return_polys=True
+    )
     print(f"Полотно: {canvas[0]}x{canvas[1]}, зсув T=({offset[0]}, {offset[1]}); після обрізання: "
           f"{pano_crop.shape[1]}x{pano_crop.shape[0]}")
     cv2.imwrite(os.path.join(FIGURES_DIR, "d_panorama.png"), pano_crop)
@@ -127,23 +119,26 @@ def run_part_d():
     # Порівняння: без лінійного переходу (останній кадр перекриває попередні) -- для демонстрації швів
     T = np.array([[1, 0, offset[0]], [0, 1, offset[1]], [0, 0, 1]], dtype=np.float64)
     naive = np.zeros((canvas[1], canvas[0], 3), np.uint8)
-    for img, H in zip(images, H_to_ref):
-        wimg = cv2.warpPerspective(img, T @ H, canvas)
-        wm = cv2.warpPerspective(np.full((h, w), 255, np.uint8), T @ H, canvas) > 0
+    for img, Hn, poly in zip(images, norm_H_list, valid_polys):
+        vmask = np.zeros((h, w), dtype=np.uint8)
+        cv2.fillConvexPoly(vmask, np.round(poly).astype(np.int32), 255)
+        img_m = img.copy()
+        img_m[vmask == 0] = 0
+        wimg = cv2.warpPerspective(img_m, T @ Hn, canvas)
+        wm = cv2.warpPerspective(vmask, T @ Hn, canvas) > 0
         naive[wm] = wimg[wm]
     cv2.imwrite(os.path.join(FIGURES_DIR, "d_panorama_naive.png"), naive)
 
     # Межі кадрів на полотні (для рисунка)
     outline = pano_full.copy()
     colors = [(230, 80, 0), (0, 160, 255), (0, 0, 230), (200, 0, 200), (0, 170, 0)]
-    corners = np.float32([[0, 0], [w, 0], [w, h], [0, h]]).reshape(-1, 1, 2)
-    for k, H in enumerate(H_to_ref):
-        poly = cv2.perspectiveTransform(corners, T @ H).astype(np.int32)
-        cv2.polylines(outline, [poly], True, colors[k], 6, cv2.LINE_AA)
+    for k, (Hn, poly_src) in enumerate(zip(norm_H_list, valid_polys)):
+        poly = cv2.perspectiveTransform(poly_src.reshape(-1, 1, 2), T @ Hn).astype(np.int32)
+        cv2.polylines(outline, [poly], True, colors[k], 8, cv2.LINE_AA)
     cv2.imwrite(os.path.join(FIGURES_DIR, "d_panorama_outlines.png"), outline)
 
-    fig = plt.figure(figsize=(12, 7.6))
-    gs = fig.add_gridspec(2, 5, height_ratios=[1, 2.2])
+    fig = plt.figure(figsize=(12, 7.2))
+    gs = fig.add_gridspec(2, 5, height_ratios=[1, 2.3])
     for i in range(n):
         ax = fig.add_subplot(gs[0, i])
         ax.imshow(cv2.cvtColor(images[i], cv2.COLOR_BGR2RGB))
@@ -161,7 +156,7 @@ def run_part_d():
 
     with open(os.path.join(RESULTS_DIR, "d_log.txt"), "w", encoding="utf-8") as f:
         f.write("=== ЖУРНАЛ ВИКОНАННЯ ЧАСТИНИ D ===\n")
-        f.write(f"Серія: {FRAME_NAMES} (lab02/data/corners, масштаб {SCALE}: {w}x{h}), опорний: {FRAME_NAMES[REF_IDX]}.\n")
+        f.write(f"Серія: {FRAME_NAMES} (lab04/data, {w}x{h}), опорний: {FRAME_NAMES[REF_IDX]}.\n")
         f.write(f"Полотно: {canvas[0]}x{canvas[1]}, зсув: ({offset[0]}, {offset[1]}).\n")
         f.write(f"Середня похибка на {len(all_err)} inliers усіх пар: {mean_all:.2f} пк.\n")
     save_csv(os.path.join(RESULTS_DIR, "d_summary.csv"),

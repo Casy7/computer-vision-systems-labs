@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from common import (
-    DATA_HW_DIR, RESULTS_DIR, FIGURES_DIR,
+    DATA_DIR, RESULTS_DIR, FIGURES_DIR,
     imread_bgr, save_csv,
     extract_sift_features, apply_ratio_test,
     compute_reprojection_errors, custom_ransac_homography, homography_corner_distance
@@ -31,9 +31,9 @@ def run_part_c():
     print("Запуск Частини C: Власний алгоритм RANSAC (Кроки 8-12)")
     print("=" * 60)
 
-    name_a, name_b = "angle4", "angle5"
-    img_a = imread_bgr(os.path.join(DATA_HW_DIR, f"{name_a}.jpg"))
-    img_b = imread_bgr(os.path.join(DATA_HW_DIR, f"{name_b}.jpg"))
+    name_a, name_b = "pano_4", "pano_5"
+    img_a = imread_bgr(os.path.join(DATA_DIR, f"{name_a}.jpg"))
+    img_b = imread_bgr(os.path.join(DATA_DIR, f"{name_b}.jpg"))
     gray_a = cv2.cvtColor(img_a, cv2.COLOR_BGR2GRAY)
     gray_b = cv2.cvtColor(img_b, cv2.COLOR_BGR2GRAY)
 
@@ -44,7 +44,7 @@ def run_part_c():
     matches_knn = bf.knnMatch(desc_a, desc_b, k=2)
     candidates = apply_ratio_test(matches_knn, ratio=0.80)
     n_cand = len(candidates)
-    print(f"Вхідні дані: {n_cand} пар-кандидатів після тесту Лоу (T=0.80)")
+    print(f"Вхідні дані ({name_a}-{name_b}): {n_cand} пар-кандидатів після тесту Лоу (T=0.80)")
 
     src_pts = np.float32([kps_a[m.queryIdx].pt for m in candidates]).reshape(-1, 2)
     dst_pts = np.float32([kps_b[m.trainIdx].pt for m in candidates]).reshape(-1, 2)
@@ -65,7 +65,6 @@ def run_part_c():
     N_theo_obs = n_iterations(p, w_obs)
     print(f"N для w=0.50: {N_theo_50};  спостережувана w = {w_obs:.3f} (inliers={n_ref}/{n_cand}) -> N = {N_theo_obs}")
 
-    # Ймовірність хоча б однієї «чистої» вибірки за N ітерацій при спостережуваній w
     def p_success(N):
         return 1.0 - (1.0 - (1.0 - w_obs) ** 4) ** N
 
@@ -77,7 +76,7 @@ def run_part_c():
     ]
 
     n_runs = 30
-    success_level = 0.95 * n_ref  # запуск вважаємо успішним, якщо знайдено >= 95 % еталонних inliers
+    success_level = 0.95 * n_ref
     iter_rows = []
     for label, mode, iters in modes_to_test:
         times, inl, errs, its = [], [], [], []
@@ -124,10 +123,8 @@ def run_part_c():
     n_common = int(common.sum())
     iou = n_common / int((mask_custom | mask_cv).sum()) * 100.0
 
-    # Обидві моделі на СПІЛЬНІЙ множині inliers (справедливе порівняння точності)
     err_custom_common = float(np.mean(compute_reprojection_errors(src_pts[common], dst_pts[common], H_custom)))
     err_cv_common = float(np.mean(compute_reprojection_errors(src_pts[common], dst_pts[common], H_cv)))
-    # Геометрична різниця моделей: середнє зміщення кутів кадру та точок спільних inliers
     corner_diff = homography_corner_distance(H_custom, H_cv, gray_a.shape)
     pc = cv2.perspectiveTransform(src_pts[common].reshape(-1, 1, 2), H_custom).reshape(-1, 2)
     pv = cv2.perspectiveTransform(src_pts[common].reshape(-1, 1, 2), H_cv).reshape(-1, 2)
@@ -185,7 +182,7 @@ def run_part_c():
     ax1.axvline(tau0, color="#d95f02", linestyle="--", lw=1.4, label="Робочий поріг τ = 3 пк")
     ax1.set_xlabel("Поріг узгодженості $\\tau$, пк")
     ax1.set_ylabel("Кількість узгоджених точок, од.")
-    ax1.set_title("Кількість inliers від порога $\\tau$")
+    ax1.set_title("Кількість inliers від порога $\\tau$ (pano_4 – pano_5)")
     ax1.grid(True, linestyle=":", alpha=0.6)
     ax1.legend(loc="lower right", fontsize=8)
 
@@ -207,7 +204,7 @@ def run_part_c():
     # Крок 12: Візуалізація узгоджених та відкинутих зіставлень
     # -------------------------------------------------------------
     print("\n--- Крок 12: Візуалізація узгоджених та відкинутих пар ---")
-    scale_disp = 0.35
+    scale_disp = 0.65
     disp_a = cv2.resize(img_a, (0, 0), fx=scale_disp, fy=scale_disp, interpolation=cv2.INTER_AREA)
     disp_b = cv2.resize(img_b, (0, 0), fx=scale_disp, fy=scale_disp, interpolation=cv2.INTER_AREA)
     h_d, w_d = disp_a.shape[:2]
@@ -235,7 +232,7 @@ def run_part_c():
 
     with open(os.path.join(RESULTS_DIR, "c_log.txt"), "w", encoding="utf-8") as f:
         f.write("=== ЖУРНАЛ ВИКОНАННЯ ЧАСТИНИ C ===\n")
-        f.write(f"Кандидатів: {n_cand}; еталонних inliers (N=5000): {n_ref}; w_obs = {w_obs:.3f}.\n")
+        f.write(f"Кандидатів ({name_a}-{name_b}): {n_cand}; еталонних inliers (N=5000): {n_ref}; w_obs = {w_obs:.3f}.\n")
         f.write(f"N(w=0.5) = {N_theo_50}; N(w_obs) = {N_theo_obs}.\n")
         f.write(f"Власний RANSAC: {inl_custom} inliers, {err_custom:.2f} пк; OpenCV: {inl_cv} inliers, {err_cv:.2f} пк.\n")
         f.write(f"Спільних: {n_common}, IoU = {iou:.1f}%; розбіжність кутів = {corner_diff:.2f} пк.\n")

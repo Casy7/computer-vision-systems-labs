@@ -1,2 +1,2 @@
 frames,frame_w,frame_h,canvas_w,canvas_h,offset_x,offset_y,total_inliers,mean_err,median_err,p95_err
-5,2016,1512,2909,1928,684,0,4042,0.73,0.57,1.94
+5,2016,1134,8466,4323,3250,1379,1224,1.10,0.93,2.64

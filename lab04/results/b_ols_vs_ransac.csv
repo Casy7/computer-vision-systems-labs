@@ -1,3 +1,3 @@
 pair,candidates,inliers_ransac,outliers_ransac,outlier_pct,ols_mean_err,ols_median_err,ols_max_err,ols_mean_err_on_inliers,ols_median_err_on_inliers,ransac_mean_err,ransac_median_err,ransac_max_err
-angle4-angle5,1160,385,775,66.8,508.47,347.92,10474.15,326.74,309.64,0.71,0.61,2.70
-scale3-scale4,929,306,623,67.1,1131.00,1201.06,3048.12,1284.44,1300.63,1.12,0.92,2.94
+pano_1-pano_2,872,357,515,59.1,341.56,279.60,2086.08,274.58,268.08,1.50,1.48,2.98
+pano_4-pano_5,738,378,360,48.8,349.30,278.97,1110.47,170.49,185.17,0.61,0.45,2.63

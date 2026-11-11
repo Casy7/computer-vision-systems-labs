@@ -3,20 +3,16 @@
 Відтворення та кількісний аналіз двох класичних режимів відмови гомографічного зшивання:
 
 1. Дефіцит геометричного перекриття (< 15 %) та великий розворот ракурсу:
-   - порівняння нормального перекриття (angle3-angle4, ~84 %), помірного (scale3-scale4, 41 % / 100 %),
-     асиметричного масштабного вкладення (scale1-scale3: малий кадр займає лише 5.8 % площі великого,
-     але сам видимий у ньому на 100 %, тому гомографія коректна!) із реальним дефіцитом перекриття:
-     (а) два підкадри з контрольованим перекриттям 8 % (< 15 %),
-     (б) великий стрибок масштабу scale1-scale5 (> 10x за лінійним розміром, < 1 % площі),
-     (в) рознесені ракурси angle4-angle7, angle4-angle8, angle8-angle10, де спільна плоска поверхня
-         майже відсутня або спотворена ракурсом, кількість inliers падає до 6-11 випадкових точок,
-         а матриця H втрачає проєктивну опуклість (перетин лінії горизонту).
+   - порівняння сусідніх пар панорами (pano_1-pano_2, pano_2-pano_3, pano_4-pano_5 із видимою часткою 37-49 %),
+     пар через один кадр (pano_1-pano_3, pano_3-pano_5) та рознесених пар із дефіцитом перекриття < 15 %
+     (pano_2-pano_5, pano_1-pano_5), де кількість узгоджених точок падає до 8-18 випадкових збігів,
+     а оцінена матриця H стає геометрично виродженою (перетин лінії горизонту).
 
-2. Просторовий паралакс при зміщенні оптичного центра камери в 3D-сцені:
-   - 5-кадрова серія обходу об'ємного жорсткого диска angle2-angle6 (опорний angle4):
-     RANSAC фіксує домінантну площину друкованої плати з високою точністю на точках самої плати,
-     проте точки рельєфного металевого корпусу HDD і клавіатури на задньому плані мають іншу глибину Z,
-     тому не задовольняють єдину матрицю H і дають багатократне двоїння контурів (ghosting).
+2. Просторовий паралакс при бічному зміщенні оптичного центра камери в 3D-сцені:
+   - спеціально знята пара кадрів err_pano_1 та err_pano_2 із поперечним кроком камери вздовж стіни з полицями:
+     RANSAC фіксує домінантну площину дальньої стіни та настінного годинника (похибка ~1.09-1.41 пк),
+     тоді як виступаючі об'ємні полиці, ваза з сухоцвітами, чашка, світильник-бра, чайники та край холодильника
+     мають меншу глибину Z і зазнають сильного паралактичного розщеплення (двоїння контурів).
 """
 import os
 import cv2
@@ -24,7 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from common import (
-    DATA_HW_DIR, RESULTS_DIR, FIGURES_DIR,
+    DATA_DIR, RESULTS_DIR, FIGURES_DIR,
     imread_bgr, save_csv,
     extract_sift_features, apply_ratio_test, apply_mutual_match,
     compute_reprojection_errors, homography_plausibility, compute_overlap_fractions,
@@ -55,26 +51,26 @@ def run_part_e():
     print("Запуск Частини E: Аналіз випадків відмови (Крок 17)")
     print("=" * 60)
 
-    scale = 0.5
+    def load_img(name):
+        return imread_bgr(os.path.join(DATA_DIR, f"{name}.jpg"))
 
-    def load_scaled(name):
-        im = imread_bgr(os.path.join(DATA_HW_DIR, f"{name}.jpg"))
-        return cv2.resize(im, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    imgs = {f"pano_{i}": load_img(f"pano_{i}") for i in range(1, 6)}
+    imgs["err_pano_1"] = load_img("err_pano_1")
+    imgs["err_pano_2"] = load_img("err_pano_2")
+    h, w = imgs["pano_1"].shape[:2]
 
     # -------------------------------------------------------------
     # 1. Дослідження перекриття та геометричної правдоподібності H
     # -------------------------------------------------------------
     print("\n--- Дослідження 1: Ступінь перекриття та виродження гомографії ---")
-    img_a4 = load_scaled("angle4")
-    h, w = img_a4.shape[:2]
     cases = [
-        ("angle3-angle4", "Сусідні кадри (~84 % перекриття)", load_scaled("angle3"), img_a4),
-        ("scale3-scale4", "Зміна масштабу (41.4 % / 100 %)", load_scaled("scale3"), load_scaled("scale4")),
-        ("scale1-scale3", "Вкладений крупний план (5.8 % / 100 %)", load_scaled("scale1"), load_scaled("scale3")),
-        ("scale1-scale5", "Критичний стрибок масштабу (> 10x, < 1 %)", load_scaled("scale1"), load_scaled("scale5")),
-        ("angle2-angle5", "Малий перетин через 3 кадри (< 10 %)", load_scaled("angle2"), load_scaled("angle5")),
-        ("angle4-angle8", "Великий розворот ракурсу (< 5 %)", img_a4, load_scaled("angle8")),
-        ("angle8-angle10", "Несумісні ракурси (< 1 % спільної зони)", load_scaled("angle8"), load_scaled("angle10")),
+        ("pano_1-pano_2", "Сусідні кадри (41.3 % видимої площі)", imgs["pano_1"], imgs["pano_2"]),
+        ("pano_2-pano_3", "Сусідні кадри (48.7 % видимої площі)", imgs["pano_2"], imgs["pano_3"]),
+        ("pano_4-pano_5", "Сусідні кадри (36.9 % видимої площі)", imgs["pano_4"], imgs["pano_5"]),
+        ("pano_1-pano_3", "Через 1 кадр (1.8 % проєкції кадру)", imgs["pano_1"], imgs["pano_3"]),
+        ("pano_3-pano_5", "Через 1 кадр (розворот > 50°)", imgs["pano_3"], imgs["pano_5"]),
+        ("pano_2-pano_5", "Дефіцит перекриття (< 10 % зони)", imgs["pano_2"], imgs["pano_5"]),
+        ("pano_1-pano_5", "Протилежні краї панорами (0 %)", imgs["pano_1"], imgs["pano_5"]),
     ]
 
     overlap_rows = []
@@ -91,7 +87,7 @@ def run_part_e():
         print(f"  {pair_id:15s}: cand={n_cand:4d}, inl={inl:4d} ({inl_pct:4.1f}%), "
               f"перекриття={cov_str:16s}, err={err:4.2f} пк -> {status}")
         overlap_rows.append([pair_id, desc, n_cand, inl, f"{inl_pct:.1f}", cov_str, f"{err:.2f}", status])
-        if pair_id == "angle4-angle8":
+        if pair_id == "pano_2-pano_5":
             vis_low_pair = (ia, ib, pack, ka, kb, cand)
 
     save_csv(os.path.join(RESULTS_DIR, "e_overlap_failure.csv"),
@@ -99,54 +95,58 @@ def run_part_e():
              overlap_rows)
 
     # -------------------------------------------------------------
-    # 2. Дослідження оптичного паралаксу на 3D-серії HDD angle2-angle6
+    # 2. Дослідження оптичного паралаксу при бічному зміщенні камери (err_pano_1, err_pano_2)
     # -------------------------------------------------------------
-    print("\n--- Дослідження 2: Оптичний паралакс у 3D-сцені (angle2-angle6) ---")
-    hdd_names = ["angle2", "angle3", "angle4", "angle5", "angle6"]
-    ref_idx = 2
-    hdd_imgs = [load_scaled(n) for n in hdd_names]
-    hdd_feats = [extract_sift_features(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)) for im in hdd_imgs]
+    print("\n--- Дослідження 2: Оптичний паралакс при зміщенні камери (err_pano_1 - err_pano_2) ---")
+    feats = {k: extract_sift_features(cv2.cvtColor(im, cv2.COLOR_BGR2GRAY))
+             for k, im in imgs.items() if k in ("err_pano_1", "err_pano_2", "pano_1", "pano_2")}
 
-    adj = {}
+    parallax_configs = [
+        ("err_pano_1-err_pano_2 (взаємні)", "err_pano_1", "err_pano_2", 0.75, True),
+        ("err_pano_1-err_pano_2 (Лоу 0.80)", "err_pano_1", "err_pano_2", 0.80, False),
+        ("err_pano_1-pano_1 (взаємні)", "err_pano_1", "pano_1", 0.75, True),
+        ("err_pano_2-pano_1 (взаємні)", "err_pano_2", "pano_1", 0.75, True),
+    ]
+
     parallax_rows = []
-    for i in range(len(hdd_names) - 1):
-        ka, da = hdd_feats[i]
-        kb, db = hdd_feats[i + 1]
-        cand = apply_mutual_match(da, db, ratio=0.75)
+    H_err_80 = None
+    for label, na, nb, ratio, use_mut in parallax_configs:
+        ka, da = feats[na]
+        kb, db = feats[nb]
+        if use_mut:
+            cand = apply_mutual_match(da, db, ratio=ratio)
+        else:
+            bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+            cand = apply_ratio_test(bf.knnMatch(da, db, k=2), ratio=ratio)
         src = np.float32([ka[m.queryIdx].pt for m in cand]).reshape(-1, 2)
         dst = np.float32([kb[m.trainIdx].pt for m in cand]).reshape(-1, 2)
         H, mask, _, err = custom_ransac_homography(src, dst, tau=3.0, p=0.99, max_iters=2000, mode="adaptive", seed=42)
-        adj[(i, i + 1)] = H
-        # Похибка на inliers (точки плати) проти похибки на відкинутих взаємних збігах (корпус / стіл / клавіатура)
+        if not use_mut:
+            H_err_80 = H
         e_all = compute_reprojection_errors(src, dst, H)
         e_in = e_all[mask]
         e_out = e_all[~mask]
-        print(f"  {hdd_names[i]} -> {hdd_names[i+1]}: взаємних={len(cand)}, inliers(плата)={mask.sum()} "
-              f"({mask.mean()*100:.1f}%), e_in={e_in.mean():.2f} пк, медіана e_out(поза платою)={np.median(e_out):.1f} пк")
-        parallax_rows.append([f"{hdd_names[i]}-{hdd_names[i+1]}", len(cand), int(mask.sum()),
+        print(f"  {label:32s}: cand={len(cand):3d}, inliers(стіна)={mask.sum():3d} "
+              f"({mask.mean()*100:.1f}%), e_in={e_in.mean():.2f} пк, медіана e_out(полиці)={np.median(e_out):.1f} пк")
+        parallax_rows.append([label, len(cand), int(mask.sum()),
                               f"{mask.mean()*100:.1f}", f"{e_in.mean():.2f}", f"{np.median(e_out):.1f}"])
 
     save_csv(os.path.join(RESULTS_DIR, "e_parallax_pairs.csv"),
              ["pair", "mutual_candidates", "inliers_pcb", "inliers_pct", "err_pcb_px", "median_err_offplane_px"],
              parallax_rows)
 
-    H_to_ref = [None] * len(hdd_names)
-    H_to_ref[ref_idx] = np.eye(3)
-    for i in range(ref_idx - 1, -1, -1):
-        H_to_ref[i] = H_to_ref[i + 1] @ adj[(i, i + 1)]
-    for i in range(ref_idx + 1, len(hdd_names)):
-        H_to_ref[i] = H_to_ref[i - 1] @ np.linalg.inv(adj[(i - 1, i)])
+    # Побудова двокадрової мозаїки та напівпрозорого накладання err_pano_1 -> err_pano_2
+    e1, e2 = imgs["err_pano_1"], imgs["err_pano_2"]
+    err_mosaic, _, _, _ = stitch_panorama_sequence([e1, e2], [H_err_80, np.eye(3)])
+    cv2.imwrite(os.path.join(FIGURES_DIR, "e_parallax_mosaic.png"), err_mosaic)
 
-    hdd_mosaic, _, _, _ = stitch_panorama_sequence(hdd_imgs, H_to_ref)
-    cv2.imwrite(os.path.join(FIGURES_DIR, "e_parallax_mosaic.png"), hdd_mosaic)
+    w12 = cv2.warpPerspective(e1, H_err_80, (w, h))
+    m12 = (w12.sum(axis=2) > 0)
+    ov12 = e2.copy()
+    ov12[m12] = cv2.addWeighted(w12[m12], 0.5, e2[m12], 0.5, 0)
+    cv2.imwrite(os.path.join(FIGURES_DIR, "e_parallax_overlay.png"), ov12)
 
-    # Двокадрове накладання angle3 -> angle4 для крупного плану паралаксу
-    H34 = adj[(1, 2)]
-    w34 = cv2.warpPerspective(hdd_imgs[1], H34, (w, h))
-    ov34 = cv2.addWeighted(hdd_imgs[2], 0.5, w34, 0.5, 0)
-    cv2.imwrite(os.path.join(FIGURES_DIR, "e_parallax_overlay.png"), ov34)
-
-    # Візуалізація випадку 1 (дефіцит перекриття angle4-angle8 + контур виродженої H)
+    # Візуалізація випадку 1 (дефіцит перекриття pano_2-pano_5)
     ia, ib, pack, _, _, _ = vis_low_pair
     H_bad, mask_bad, src_b, dst_b = pack
     sc = 0.65
@@ -166,15 +166,14 @@ def run_part_e():
         cv2.line(canvas_low, p1, p2, (0, 210, 255), 2, cv2.LINE_AA)
 
     # Зведена 2-панельна ілюстрація для звіту
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.5, 4.5), gridspec_kw={"width_ratios": [1.05, 1.0]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.6, 4.4), gridspec_kw={"width_ratios": [1.1, 1.0]})
     ax1.imshow(cv2.cvtColor(canvas_low, cv2.COLOR_BGR2RGB))
-    ax1.set_title("(а) Дефіцит перекриття (angle4 – angle8):\nлише 6 хибних «inliers» із 184 кандидатів, H вироджена", fontsize=9.5)
+    ax1.set_title(f"(а) Дефіцит перекриття (pano_2 – pano_5, < 10 %):\nлише {int(mask_bad.sum())} хибних «inliers» зі {len(src_b)} кандидата, H вироджена", fontsize=9.5)
     ax1.axis("off")
 
-    hm, wm = hdd_mosaic.shape[:2]
-    crop_mos = hdd_mosaic[int(hm * 0.04):int(hm * 0.86), int(wm * 0.16):int(wm * 0.84)]
-    ax2.imshow(cv2.cvtColor(crop_mos, cv2.COLOR_BGR2RGB))
-    ax2.set_title("(б) Оптичний паралакс у 3D-сцені (мозаїка angle2–angle6):\nплата суміщена, але рельєфний корпус HDD і клавіатура двояться", fontsize=9.5)
+    crop_ov = ov12[int(h * 0.02):int(h * 0.82), int(w * 0.05):int(w * 0.96)]
+    ax2.imshow(cv2.cvtColor(crop_ov, cv2.COLOR_BGR2RGB))
+    ax2.set_title("(б) Паралакс при зміщенні камери (err_pano_1 – err_pano_2):\nгодинник на стіні суміщено, а виступаючі полиці й ваза двояться", fontsize=9.5)
     ax2.axis("off")
 
     plt.tight_layout()
@@ -183,8 +182,8 @@ def run_part_e():
 
     with open(os.path.join(RESULTS_DIR, "e_log.txt"), "w", encoding="utf-8") as f:
         f.write("=== ЖУРНАЛ ВИКОНАННЯ ЧАСТИНИ E ===\n")
-        f.write("1. Досліджено дефіцит перекриття та критерій геометричної правдоподібності H.\n")
-        f.write("2. Досліджено просторовий паралакс при зшиванні 5 кадрів об'ємної сцени angle2-angle6.\n")
+        f.write("1. Досліджено дефіцит перекриття на парах панорамної серії pano_1..pano_5.\n")
+        f.write("2. Досліджено просторовий паралакс при бічному зміщенні камери на парі err_pano_1-err_pano_2.\n")
 
     print("\nЧастина E успішно виконана!")
 

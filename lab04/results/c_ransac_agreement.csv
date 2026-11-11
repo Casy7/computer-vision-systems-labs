@@ -1,2 +1,2 @@
 common_inliers,iou_pct,corner_diff_px,point_diff_px,custom_iters
-378,97.9,38.58,0.36,878
+373,97.6,41.64,0.40,105

@@ -28,7 +28,7 @@ local function read_csv(name)
 end
 
 local function out(cells)
-  tex.sprint(table.concat(cells, " & ") .. " \\\\")
+  tex.print(table.concat(cells, " & ") .. " \\\\")
 end
 
 local function f(x, d)
@@ -38,7 +38,7 @@ local function f(x, d)
 end
 
 local function esc_tex(s)
-  return tostring(s):gsub("_", "\\_"):gsub("%%", "\\%%"):gsub("<", "$<$"):gsub(">", "$>$")
+  return (tostring(s):gsub("_", "\\_"):gsub("%%", "\\%%"):gsub("<", "$<$"):gsub(">", "$>$"))
 end
 
 -- Таблиця 1: Критерій відношення відстаней Лоу та взаємна перевірка (Частина A)
@@ -138,7 +138,7 @@ end
 function tab_overlap_failure()
   local rows = read_csv("e_overlap_failure.csv")
   for _, r in ipairs(rows) do
-    local st = r[8]:gsub("кут кадру за лінією горизонту", "за горизонтом"):gsub("зміна площі ", "площа ")
+    local st = r[8]:gsub("Відмова %(кут кадру за лінією горизонту%)", "За горизонтом"):gsub("Відмова %(мало inliers%)", "Мало inliers")
     out({
       "\\texttt{" .. esc_tex(r[1]) .. "}",
       esc_tex(r[2]),

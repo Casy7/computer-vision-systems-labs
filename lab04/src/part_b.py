@@ -10,9 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from common import (
-    DATA_HW_DIR, RESULTS_DIR, FIGURES_DIR,
-    imread_bgr, imread_rgb, save_csv,
-    extract_sift_features, match_knn, apply_ratio_test, compute_reprojection_errors
+    DATA_DIR, RESULTS_DIR, FIGURES_DIR,
+    imread_bgr, save_csv,
+    extract_sift_features, apply_ratio_test, compute_reprojection_errors
 )
 
 
@@ -22,8 +22,8 @@ def run_part_b():
     print("=" * 60)
 
     pairs = [
-        ("angle4", "angle5", os.path.join(DATA_HW_DIR, "angle4.jpg"), os.path.join(DATA_HW_DIR, "angle5.jpg")),
-        ("scale3", "scale4", os.path.join(DATA_HW_DIR, "scale3.jpg"), os.path.join(DATA_HW_DIR, "scale4.jpg"))
+        ("pano_1", "pano_2", os.path.join(DATA_DIR, "pano_1.jpg"), os.path.join(DATA_DIR, "pano_2.jpg")),
+        ("pano_4", "pano_5", os.path.join(DATA_DIR, "pano_4.jpg"), os.path.join(DATA_DIR, "pano_5.jpg"))
     ]
 
     csv_rows = []
@@ -60,7 +60,7 @@ def run_part_b():
         inlier_mask = (mask_ransac.ravel() == 1)
         errors_ransac_all = compute_reprojection_errors(src_pts, dst_pts, H_ransac)
         errors_ransac_inliers = errors_ransac_all[inlier_mask]
-        
+
         num_inliers = int(np.sum(inlier_mask))
         num_outliers = len(candidates) - num_inliers
         outlier_ratio = (num_outliers / len(candidates)) * 100.0
@@ -68,8 +68,6 @@ def run_part_b():
         mean_err_ransac = float(np.mean(errors_ransac_inliers))
         median_err_ransac = float(np.median(errors_ransac_inliers))
         max_err_ransac = float(np.max(errors_ransac_inliers))
-        # Коректне порівняння «на одній і тій самій підмножині»: похибка МНК-гомографії
-        # на тих самих точках, які RANSAC визнав узгодженими
         mean_err_ols_on_inl = float(np.mean(errors_ols[inlier_mask]))
         median_err_ols_on_inl = float(np.median(errors_ols[inlier_mask]))
         print(f"RANSAC (tau=3.0 пк): inliers={num_inliers}/{len(candidates)} (викиди: {outlier_ratio:.1f}%), "
@@ -92,36 +90,31 @@ def run_part_b():
             f"{max_err_ransac:.2f}"
         ])
 
-        # Крок 7: Візуалізація результатів для angle4 -> angle5
-        if name_a == "angle4":
+        # Крок 7: Візуалізація результатів для pano_1 -> pano_2
+        if name_a == "pano_1":
             print("\nГенерація порівняльних ілюстрацій варпінгу (Крок 7)...")
             h, w = img_b.shape[:2]
 
-            # Варпінг через МНК-гомографію (спотворений)
             warped_ols = cv2.warpPerspective(img_a, H_ols, (w, h), flags=cv2.INTER_LINEAR)
-            # Варпінг через RANSAC-гомографію (коректно трансформований)
             warped_ransac = cv2.warpPerspective(img_a, H_ransac, (w, h), flags=cv2.INTER_LINEAR)
 
-            # Напівпрозоре накладання для оцінки узгодженості контурів
             alpha = 0.5
             overlay_ols = cv2.addWeighted(img_b, alpha, warped_ols, 1.0 - alpha, 0)
             overlay_ransac = cv2.addWeighted(img_b, alpha, warped_ransac, 1.0 - alpha, 0)
 
-            # Збереження окремих повнорозмірних зображень у figures
             cv2.imwrite(os.path.join(FIGURES_DIR, "b_warped_ols.png"), warped_ols)
             cv2.imwrite(os.path.join(FIGURES_DIR, "b_warped_ransac.png"), warped_ransac)
             cv2.imwrite(os.path.join(FIGURES_DIR, "b_overlay_ols.png"), overlay_ols)
             cv2.imwrite(os.path.join(FIGURES_DIR, "b_overlay_ransac.png"), overlay_ransac)
 
-            # Зведена наукова панель порівняння для звіту (2x2)
             fig, axs = plt.subplots(2, 2, figsize=(10, 6.2))
-            
+
             axs[0, 0].imshow(cv2.cvtColor(warped_ols, cv2.COLOR_BGR2RGB))
             axs[0, 0].set_title(f"(а) Варпінг МНК (без відсіву): mean e = {mean_err_ols:.1f} пк", fontsize=9.5)
             axs[0, 0].axis("off")
 
             axs[0, 1].imshow(cv2.cvtColor(overlay_ols, cv2.COLOR_BGR2RGB))
-            axs[0, 1].set_title("(б) Накладання МНК на цільовий кадр angle5", fontsize=9.5)
+            axs[0, 1].set_title("(б) Накладання МНК на цільовий кадр pano_2", fontsize=9.5)
             axs[0, 1].axis("off")
 
             axs[1, 0].imshow(cv2.cvtColor(warped_ransac, cv2.COLOR_BGR2RGB))
@@ -129,17 +122,13 @@ def run_part_b():
             axs[1, 0].axis("off")
 
             axs[1, 1].imshow(cv2.cvtColor(overlay_ransac, cv2.COLOR_BGR2RGB))
-            axs[1, 1].set_title("(г) Накладання RANSAC на цільовий кадр angle5", fontsize=9.5)
+            axs[1, 1].set_title("(г) Накладання RANSAC на цільовий кадр pano_2", fontsize=9.5)
             axs[1, 1].axis("off")
 
             plt.tight_layout()
             plt.savefig(os.path.join(FIGURES_DIR, "b_ols_vs_ransac_panel.png"))
             plt.close(fig)
 
-            # Гістограма розподілу похибок репроєкції (логарифмічна шкала).
-            # Межі бінів охоплюють увесь діапазон похибок (раніше верхня межа 10^3.5 відсікала
-            # найбільші похибки МНК). Для коректного порівняння МНК показано на ВСІХ кандидатах
-            # і окремо на тих самих точках, які RANSAC визнав узгодженими.
             fig_hist, ax_h = plt.subplots(figsize=(6.8, 3.9))
             all_err = np.concatenate([errors_ols, errors_ransac_inliers])
             lo = np.floor(np.log10(max(all_err.min(), 1e-2)))
@@ -152,18 +141,17 @@ def run_part_b():
             ax_h.hist(errors_ransac_inliers, bins=bins, color="#1b9e77", alpha=0.8,
                       label=f"RANSAC, {num_inliers} inliers: mean = {mean_err_ransac:.2f} пк")
             ax_h.axvline(3.0, color="k", ls="--", lw=1.0)
-            ax_h.text(3.3, ax_h.get_ylim()[1] * 0.92, "τ = 3 пк", fontsize=8)
+            ax_h.text(3.3, ax_h.get_ylim()[1] * 0.90, "τ = 3 пк", fontsize=8)
             ax_h.set_xscale("log")
             ax_h.set_xlabel("Похибка репроєкції $e_i = \\|p_2 - \\pi(H p_1)\\|$, пк (лог. шкала)")
             ax_h.set_ylabel("Кількість пар точок, од.")
-            ax_h.set_title("Розподіл похибок репроєкції: МНК проти RANSAC (angle4 – angle5)")
+            ax_h.set_title("Розподіл похибок репроєкції: МНК проти RANSAC (pano_1 – pano_2)")
             ax_h.grid(True, which="both", linestyle=":", alpha=0.5)
             ax_h.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=1, fontsize=8)
             plt.tight_layout()
             plt.savefig(os.path.join(FIGURES_DIR, "b_reprojection_hist.png"))
             plt.close(fig_hist)
 
-    # Збереження результатів у CSV
     header = [
         "pair", "candidates", "inliers_ransac", "outliers_ransac", "outlier_pct",
         "ols_mean_err", "ols_median_err", "ols_max_err",
@@ -176,11 +164,10 @@ def run_part_b():
         f.write("=== ЖУРНАЛ ВИКОНАННЯ ЧАСТИНИ B ===\n")
         f.write("Крок 6: Оцінено гомографію МНК без фільтрації викидів (cv2.findHomography(src, dst, 0)).\n")
         f.write("Крок 7: Застосовано warpPerspective. Через чутливість МНК до викидів геометрія повністю руйнується.\n")
-        f.write("Збережено порівняльні рисунки та гістограму похибок репроєкції.\n")
+        f.write("Збережено порівняльні рисунки та гістограму похибок репроєкції для pano_1-pano_2.\n")
 
     print("\nЧастина B успішно завершена!")
 
 
 if __name__ == "__main__":
     run_part_b()
-

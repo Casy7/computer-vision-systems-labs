@@ -1,5 +1,5 @@
 pair,mutual_candidates,inliers_pcb,inliers_pct,err_pcb_px,median_err_offplane_px
-angle2-angle3,173,122,70.5,0.38,139.8
-angle3-angle4,2341,1795,76.7,0.24,70.1
-angle4-angle5,108,65,60.2,0.57,26.0
-angle5-angle6,65,31,47.7,1.15,36.6
+err_pano_1-err_pano_2 (взаємні),91,32,35.2,1.09,26.3
+err_pano_1-err_pano_2 (Лоу 0.80),209,38,18.2,1.16,71.9
+err_pano_1-pano_1 (взаємні),100,48,48.0,1.17,12.8
+err_pano_2-pano_1 (взаємні),58,22,37.9,1.10,256.7
