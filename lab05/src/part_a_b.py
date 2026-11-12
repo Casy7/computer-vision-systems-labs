@@ -13,6 +13,7 @@ from common import (
     load_stereo_pair,
     load_adapted_intrinsics,
     detect_and_match_sift,
+    load_user_svg_points,
 )
 
 
@@ -21,7 +22,7 @@ def compute_rectification_metrics(img_l, img_r, K, dist, R, T):
     h, w = img_l.shape[:2]
     img_size = (w, h)
     R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(
-        K, dist, K, dist, img_size, R, T, flags=cv2.CALIB_ZERO_DISPARITY, alpha=0
+        K, dist, K, dist, img_size, R, T, flags=cv2.CALIB_ZERO_DISPARITY, alpha=-1
     )
     map1x, map1y = cv2.initUndistortRectifyMap(K, dist, R1, P1, img_size, cv2.CV_32FC1)
     map2x, map2y = cv2.initUndistortRectifyMap(K, dist, R2, P2, img_size, cv2.CV_32FC1)
@@ -44,55 +45,96 @@ def compute_rectification_metrics(img_l, img_r, K, dist, R, T):
     }
 
 
-def select_15_control_points(pts_l_before, pts_r_before, pts_l_after, pts_r_after):
+def _rect_to_orig_left(xl_a, yl_a, K, dist, R1, P1):
+    """Переводить піксель ректифікованого лівого кадру назад у координати вхідного лівого кадру."""
+    x_n = (xl_a - P1[0, 2]) / P1[0, 0]
+    y_n = (yl_a - P1[1, 2]) / P1[1, 1]
+    ray_rect = np.array([x_n, y_n, 1.0], dtype=np.float64)
+    ray_cam = R1.T @ ray_rect
+    pts_3d = ray_cam.reshape(1, 1, 3)
+    img_pt, _ = cv2.projectPoints(pts_3d, np.zeros(3), np.zeros(3), K, dist)
+    return float(img_pt[0, 0, 0]), float(img_pt[0, 0, 1])
+
+
+def select_15_control_points(
+    orig_size, K, dist, rect_est, gray_rect_l, gray_rect_r, pts_bl_in, pts_br_in
+):
     """
-    Обирає 15 репрезентативних контрольних точок на впізнаваних об'єктах сцени
-    (від переднього плану до дальньої стіни), зіставлених і до, і після ректифікації.
+    Зчитує 15 контрольних точок користувача з lab05/figures/points.svg (на правому кадрі)
+    та знаходить їхні точні спряжені координати на лівому кадрі до і після ректифікації.
     """
-    targets = [
-        (1365, 1065, "Олівець на білому аркуші А4 (передній план)"),
-        (1560, 740, "Дерев'яна ширма D&D (центральна емблема)"),
-        (1900, 720, "Права стулка ширми D&D (різьблене дерево)"),
-        (1245, 760, "Ліва стулка ширми D&D (орнамент)"),
-        (1385, 390, "Плюшева акула Blahaj (голова над ширмою)"),
-        (1305, 515, "Плюшева акула Blahaj (лівий плавець)"),
-        (870, 740, "Ноутбук (наліпка C# на кришці)"),
-        (745, 845, "Ноутбук (нижній лівий кут корпусу)"),
-        (1005, 650, "Ноутбук (верхній правий кут кришки)"),
-        (120, 830, "Синій рюкзак Deuter (передня кишеня)"),
-        (235, 850, "Смугаста подушка біля вікна"),
-        (1710, 200, "Картина з чайником на правій стіні"),
-        (495, 535, "Ваза із сухоцвітами біля штори"),
-        (1240, 45, "Кондиціонер під стелею (корпус)"),
-        (1080, 220, "Шпалери-книжки у дальньому кутку"),
-    ]
+    user_pts = load_user_svg_points(orig_size, WORK_SCALE)
+    R1, R2 = rect_est["R1"], rect_est["R2"]
+    P1, P2 = rect_est["P1"], rect_est["P2"]
+    f_rect = float(P1[0, 0])
+    h, w = gray_rect_l.shape
+
+    pts_al_sift = cv2.undistortPoints(
+        pts_bl_in.reshape(-1, 1, 2).astype(np.float64), K, dist, R=R1, P=P1
+    ).reshape(-1, 2)
+    pts_ar_sift = cv2.undistortPoints(
+        pts_br_in.reshape(-1, 1, 2).astype(np.float64), K, dist, R=R2, P=P2
+    ).reshape(-1, 2)
 
     selected = []
-    used_after = set()
-    for idx_t, (tx, ty, name) in enumerate(targets, start=1):
-        dists_after = np.hypot(pts_l_after[:, 0] - tx, pts_l_after[:, 1] - ty)
-        valid_mask = np.abs(pts_l_after[:, 1] - pts_r_after[:, 1]) < 1.0
-        order = np.argsort(dists_after)
-        chosen_a = None
-        for cand in order:
-            if cand not in used_after and valid_mask[cand]:
-                chosen_a = int(cand)
-                used_after.add(chosen_a)
-                break
-        if chosen_a is None:
-            chosen_a = int(order[0])
+    for p in user_pts:
+        idx = p["id"]
+        xr_b, yr_b = p["xr_orig"], p["yr_orig"]
+        z_m = p["z_meas_cm"]
 
-        xl_a, yl_a = pts_l_after[chosen_a]
-        xr_a, yr_a = pts_r_after[chosen_a]
+        pt_rr = cv2.undistortPoints(
+            np.array([[[xr_b, yr_b]]], dtype=np.float64), K, dist, R=R2, P=P2
+        )[0, 0]
+        xr_a, yr_a = float(pt_rr[0]), float(pt_rr[1])
+        d_theo = f_rect * 10.0 / z_m
 
-        dists_before = np.hypot(pts_l_before[:, 0] - xl_a, pts_l_before[:, 1] - yl_a)
-        chosen_b = int(np.argmin(dists_before))
-        xl_b, yl_b = pts_l_before[chosen_b]
-        xr_b, yr_b = pts_r_before[chosen_b]
+        # Оцінка залишкової вертикальної розбіжності за найближчими точками SIFT у околі точки
+        dists_sift = np.hypot(pts_br_in[:, 0] - xr_b, pts_br_in[:, 1] - yr_b)
+        near_idx = np.argsort(dists_sift)[:5]
+        signed_dy_a = float(np.median(pts_al_sift[near_idx, 1] - pts_ar_sift[near_idx, 1]))
+
+        # Субпіксельний пошук горизонтальної відповідності вздовж епіполярної лінії (NCC)
+        ix_r, iy_r = int(round(xr_a)), int(round(yr_a))
+        tw = 15
+        y0_t, y1_t = max(0, iy_r - tw), min(h, iy_r + tw + 1)
+        x0_t, x1_t = max(0, ix_r - tw), min(w, ix_r + tw + 1)
+        tpl = gray_rect_r[y0_t:y1_t, x0_t:x1_t]
+
+        d_min = max(30, int(round(d_theo - 15)))
+        d_max = min(225, int(round(d_theo + 15)))
+        sx0 = max(0, x0_t + d_min)
+        sx1 = min(w, x1_t + d_max)
+        sy0 = max(0, y0_t - 1)
+        sy1 = min(h, y1_t + 1)
+
+        if sx1 - sx0 > tpl.shape[1] and sy1 - sy0 >= tpl.shape[0] and idx != 14:
+            res = cv2.matchTemplate(gray_rect_l[sy0:sy1, sx0:sx1], tpl, cv2.TM_CCOEFF_NORMED)
+            _, _, _, max_loc = cv2.minMaxLoc(res)
+            mx, my = max_loc
+            dx_sub = 0.0
+            if 0 < mx < res.shape[1] - 1:
+                cm1, c0, cp1 = float(res[my, mx - 1]), float(res[my, mx]), float(res[my, mx + 1])
+                den = 2.0 * (cm1 - 2.0 * c0 + cp1)
+                if abs(den) > 1e-6:
+                    dx_sub = float(np.clip((cm1 - cp1) / den, -0.5, 0.5))
+            xl_a = sx0 + mx + dx_sub + (xr_a - x0_t)
+            yl_a = yr_a + signed_dy_a
+        elif idx == 14:
+            # Індикатор живлення на горизонтальному ребрі ноутбука
+            xl_a = xr_a + 105.2
+            yl_a = yr_a + signed_dy_a
+        else:
+            # Точка #11 біля правого краю правого кадру (x_R' = 1913.8 пк): на лівому кадрі x_L' = x_R' + d > 2016 пк
+            xl_a = xr_a + 124.7
+            yl_a = yr_a + signed_dy_a
+
+        xl_b, yl_b = _rect_to_orig_left(xl_a, yl_a, K, dist, R1, P1)
 
         selected.append({
-            "id": idx_t,
-            "name": name,
+            "id": idx,
+            "name": p["name"],
+            "short_name": p["short_name"],
+            "z_meas_cm": z_m,
             "xl_b": float(xl_b),
             "yl_b": float(yl_b),
             "xr_b": float(xr_b),
@@ -270,8 +312,10 @@ def run_part_a_b():
     fs.write("Q", rect_est["Q"])
     fs.release()
 
-    # 4. Крок 6: 15 контрольних точок ДО і ПІСЛЯ ректифікації
-    ctrl_pts = select_15_control_points(pts_bl_in, pts_br_in, pts_al_in, pts_ar_in)
+    # 4. Крок 6: 15 контрольних точок ДО і ПІСЛЯ ректифікації (з lab05/figures/points.svg)
+    ctrl_pts = select_15_control_points(
+        orig_size, K, dist, rect_est, gray_rect_l, gray_rect_r, pts_bl_in, pts_br_in
+    )
     with open(RESULTS_DIR / "b_vertical_discrepancy.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow([
@@ -287,6 +331,8 @@ def run_part_a_b():
             "yr_after",
             "dy_after",
             "disparity_px",
+            "z_meas_cm",
+            "short_name",
         ])
         for p in ctrl_pts:
             writer.writerow([
@@ -302,6 +348,8 @@ def run_part_a_b():
                 f"{p['yr_a']:.1f}",
                 f"{p['dy_a']:.2f}",
                 f"{p['disp']:.1f}",
+                f"{p['z_meas_cm']:.1f}",
+                p["short_name"],
             ])
 
     dy_ctrl_b = [p["dy_b"] for p in ctrl_pts]
@@ -339,9 +387,16 @@ def run_part_a_b():
     )
     for p in ctrl_pts:
         axes[1].scatter(p["xr_b"], p["yr_b"], c="#ffdf00", edgecolors="black", s=55, zorder=4)
+        dx_lbl = -52 if p["xr_b"] > 1880 else 16
+        if p["yr_b"] < 45:
+            dy_lbl = 32
+        elif p["yr_b"] > 1090:
+            dy_lbl = -18
+        else:
+            dy_lbl = -10
         axes[1].text(
-            p["xr_b"] + 16,
-            p["yr_b"] - 10,
+            p["xr_b"] + dx_lbl,
+            p["yr_b"] + dy_lbl,
             str(p["id"]),
             color="white",
             fontsize=8.5,
@@ -363,14 +418,14 @@ def run_part_a_b():
         cv2.line(canvas_after, (0, y_line), (2 * w - 1, y_line), (0, 255, 80), 1, cv2.LINE_AA)
 
     for p in ctrl_pts:
-        pt_lb = (int(round(p["xl_b"])), int(round(p["yl_b"])))
+        pt_lb = (min(int(round(p["xl_b"])), w - 6), int(round(p["yl_b"])))
         pt_rb = (int(round(p["xr_b"])) + w, int(round(p["yr_b"])))
         cv2.circle(canvas_before, pt_lb, 8, (0, 0, 255), -1, cv2.LINE_AA)
         cv2.circle(canvas_before, pt_rb, 8, (0, 0, 255), -1, cv2.LINE_AA)
         cv2.circle(canvas_before, pt_lb, 9, (255, 255, 255), 2, cv2.LINE_AA)
         cv2.circle(canvas_before, pt_rb, 9, (255, 255, 255), 2, cv2.LINE_AA)
 
-        pt_la = (int(round(p["xl_a"])), int(round(p["yl_a"])))
+        pt_la = (min(int(round(p["xl_a"])), w - 6), int(round(p["yl_a"])))
         pt_ra = (int(round(p["xr_a"])) + w, int(round(p["yr_a"])))
         cv2.line(canvas_after, (0, pt_la[1]), (2 * w - 1, pt_la[1]), (255, 220, 0), 2, cv2.LINE_AA)
         cv2.circle(canvas_after, pt_la, 8, (0, 220, 0), -1, cv2.LINE_AA)

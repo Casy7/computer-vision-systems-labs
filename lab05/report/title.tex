@@ -1,42 +1,53 @@
 \begin{titlepage}
-    \centering
-    % Верхній колонтитул
-    {\small Міністерство освіти і науки України \par}
-    \vspace{0.1cm}
-    {\large \textbf{Одеський національний університет імені І. І. Мечникова} \par}
-    \vspace{0.1cm}
-    {\small Факультет математики, фізики та інформаційних технологій \par}
-    \vspace{0.1cm}
-    {\small Кафедра математичного забезпечення комп'ютерних систем \par}
+    \thispagestyle{empty}
+    \setlength{\parindent}{0pt}
+    
+    % -- ШАПКА ДОКУМЕНТА (12pt, напівжирний) --
+    \begin{center}
+        {\fontsize{12pt}{16pt}\selectfont\bfseries
+        МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ\\[3pt]
+        ОДЕСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ ІМЕНІ І.І. МЕЧНИКОВА\\[3pt]
+        ФАКУЛЬТЕТ МАТЕМАТИКИ, ФІЗИКИ ТА ІНФОРМАЦІЙНИХ ТЕХНОЛОГІЙ\\[3pt]
+        КАФЕДРА ОПТИМАЛЬНОГО КЕРУВАННЯ ТА ЕКОНОМІЧНОЇ КІБЕРНЕТИКИ\par}
+    \end{center}
+
+    \vspace{1.5cm}
+
+    % -- НАЗВА РОБОТИ ТА ТЕМА --
+    \begin{center}
+        {\fontsize{18pt}{22pt}\selectfont\bfseries ЗВІТ\\
+        до лабораторної роботи № 5\par}
+        \vspace{0.4cm}
+        {\fontsize{14pt}{18pt}\selectfont
+        з дисципліни «Системи комп’ютерного зору»\par}
+        \vspace{0.4cm}
+        {\fontsize{16pt}{20pt}\selectfont\bfseries
+        на тему:\\[6pt]
+        «Стереопара: ректифікація, диспаратність, глибина»\par}
+    \end{center}
+
+    \vspace{1.5cm}
+
+    % -- ПРАВИЙ БЛОК (Виконавець) --
+    \hfill
+    \begin{minipage}{0.60\textwidth}
+        \raggedright
+        {\fontsize{14pt}{19pt}\selectfont
+        Виконав:\\[2pt]
+        студент 3 курсу групи 1\\[2pt]
+        спеціальності F1 «Прикладна математика»\\[2pt]
+        Касьянов Ярослав Володимирович
+        }
+    \end{minipage}
 
     \vfill
 
-    % Назва звіту
-    {\Large \textbf{ЗВІТ} \par}
-    \vspace{0.3cm}
-    {\large про виконання лабораторної роботи №\,5 \par}
-    \vspace{0.2cm}
-    {\large з дисципліни \textbf{«Системи комп'ютерного зору»} \par}
-    \vspace{0.4cm}
-    {\LARGE \textbf{СТЕРЕОПАРА: РЕКТИФІКАЦІЯ, ДИСПАРАТНІСТЬ, ГЛИБИНА} \par}
-
-    \vfill
-
-    % Інформація про виконавця та викладача
-    \begin{flushright}
-        \begin{minipage}{0.55\textwidth}
-            \textbf{Виконав:} \\
-            студент I курсу магістратури \\
-            спеціальності F3 «Комп'ютерні науки» \\
-            \textit{Кисіль К. С.} \\[0.8cm]
-            \textbf{Перевірив:} \\
-            к.ф.-м.н., доц. \\
-            \textit{Малахов Є. В.}
-        \end{minipage}
-    \end{flushright}
-
-    \vfill
-
-    % Нижній колонтитул
-    {\small Одеса -- \the\year \par}
+    % -- МІСТО ТА РІК --
+    \begin{center}
+        {\fontsize{12pt}{14pt}\selectfont\bfseries Одеса -- 2026\par}
+    \end{center}
 \end{titlepage}
+
+% За ДСТУ титульна сторінка входить у загальну нумерацію як 1-ша, 
+% тому наступна сторінка отримує номер 2:
+\setcounter{page}{2}

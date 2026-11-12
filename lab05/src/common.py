@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import time
+import xml.etree.ElementTree as ET
 import cv2
 import numpy as np
 import matplotlib
@@ -18,6 +19,7 @@ DATA_DIR = LAB_DIR / "data"
 RESULTS_DIR = LAB_DIR / "results"
 FIGURES_DIR = LAB_DIR / "figures"
 LAB02_PARAMS = LAB_DIR.parent / "lab02" / "camera_params.yml"
+POINTS_SVG = FIGURES_DIR / "points.svg"
 
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 FIGURES_DIR.mkdir(parents=True, exist_ok=True)
@@ -27,6 +29,70 @@ WORK_SCALE = 0.5
 # Базова лінія стереопари (Варіант 2: горизонтальний зсув однієї камери B = 10 см = 100 мм)
 BASELINE_MM = 100.0
 BASELINE_CM = 10.0
+
+# 15 контрольних точок сцени, розмічених користувачем у lab05/figures/points.svg на правому кадрі
+# разом із фактичними відстанями Z_meas (см), виміряними рулеткою від площини камери
+USER_POINTS_META = {
+    1: ("Хвіст емблеми дракона на ширмі", "1. Ширма (дракон)", 119.0),
+    2: ("Ніс Блахаджа", "2. Ніс Блахаджа", 131.8),
+    3: ("Центр # наліпки C# на ноутбуці", "3. Наліпка C#", 143.0),
+    4: ("Центр чайника на малюнку", "4. Малюнок чайника", 259.0),
+    5: ("Внутрішній кут рамки телевізора", "5. Рамка ТВ", 251.5),
+    6: ("Ручка вікна", "6. Ручка вікна", 313.0),
+    7: ("Накінечник олівця", "7. Олівець", 76.8),
+    8: ("Емблема рюкзака Deuter", "8. Рюкзак Deuter", 255.0),
+    9: ("Логотип фірми кондиціонера", "9. Кондиціонер", 312.0),
+    10: ("Шов на подушці", "10. Подушка", 253.0),
+    11: ("Внутрішня рамка правої створки ширми", "11. Права створка ширми", 131.0),
+    12: ("Кут візерунку на шпалерах в куті кімнати", "12. Шпалери в куті", 348.0),
+    13: ("Кут рами вікна", "13. Кут рами вікна", 330.0),
+    14: ("Ноутбук, індикатор живлення", "14. Індикатор ноутбука", 140.0),
+    15: ("Границя ватмана", "15. Границя ватмана", 106.0),
+}
+
+
+def load_user_svg_points(orig_size=(4032, 2268), scale: float = WORK_SCALE):
+    """
+    Зчитує координати 15 контрольних точок (point_1 .. point_15) з файла lab05/figures/points.svg
+    та переводить їх із системи координат SVG viewBox у пікселі правого кадру при масштабі scale.
+    """
+    tree = ET.parse(POINTS_SVG)
+    root = tree.getroot()
+    vb = [float(v) for v in root.attrib["viewBox"].split()]
+    vb_w, vb_h = vb[2], vb[3]
+    work_w = orig_size[0] * scale
+    work_h = orig_size[1] * scale
+    sx = work_w / vb_w
+    sy = work_h / vb_h
+
+    ns_ink = "{http://www.inkscape.org/namespaces/inkscape}"
+    raw_coords = {}
+    for elem in root.iter():
+        label = elem.attrib.get(ns_ink + "label", "")
+        if label.startswith("point_"):
+            try:
+                idx = int(label.split("_")[1])
+            except ValueError:
+                continue
+            cx = float(elem.attrib["cx"]) * sx
+            cy = float(elem.attrib["cy"]) * sy
+            raw_coords[idx] = (cx, cy)
+
+    points = []
+    for idx in sorted(USER_POINTS_META.keys()):
+        if idx not in raw_coords:
+            raise KeyError(f"Точку point_{idx} не знайдено у {POINTS_SVG}")
+        name, short_name, z_meas_cm = USER_POINTS_META[idx]
+        xr, yr = raw_coords[idx]
+        points.append({
+            "id": idx,
+            "name": name,
+            "short_name": short_name,
+            "xr_orig": float(xr),
+            "yr_orig": float(yr),
+            "z_meas_cm": float(z_meas_cm),
+        })
+    return points
 
 
 def load_stereo_pair(scale: float = WORK_SCALE):

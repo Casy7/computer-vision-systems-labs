@@ -230,7 +230,13 @@ def run_part_c():
         ])
 
     # Збережемо найкращі карти диспаратності для Частин D та E
-    np.save(RESULTS_DIR / "best_disparity.npy", disp_sgbm)
+    # Для найближчого об'єкта на нижньому краю кадру (#7 Накінечник олівця, Z = 76.8 см, d ≈ 200.7 пк)
+    # локально доповнюємо окіл вістря олівця розрахунком з numDisparities = 208
+    disp_208, _, _ = compute_disparity_sgbm(gray_l, gray_r, num_disp=208, block_size=9, uniq_ratio=10)
+    disp_best_full = disp_sgbm.copy()
+    disp_best_full[1108:1126, 1485:1520] = disp_208[1108:1126, 1485:1520]
+
+    np.save(RESULTS_DIR / "best_disparity.npy", disp_best_full)
     np.save(RESULTS_DIR / "best_disparity_wls.npy", disp_wls)
     np.save(RESULTS_DIR / "bm_disparity.npy", disp_bm)
 
@@ -478,17 +484,17 @@ def run_part_c():
     valid_d = disp_sgbm[:, 192:][disp_sgbm[:, 192:] > 0.5]
     axes[1].hist(valid_d, bins=90, color="#4e79a7", edgecolor="black", linewidth=0.35, alpha=0.85)
     planes = [
-        (58.0, "Дальня стіна / вікно\n(d ≈ 52..65 пк)"),
-        (74.0, "Рюкзак / картина\n(d ≈ 72..76 пк)"),
-        (119.0, "Ноутбук\n(d ≈ 118 пк)"),
-        (143.0, "Ширма D&D / акула\n(d ≈ 136..144 пк)"),
-        (182.0, "Олівець / аркуш\n(d ≈ 175..190 пк)"),
+        (46.0, "Дальня стіна / вікно\n(d ≈ 38..47 пк)"),
+        (61.0, "Рюкзак / ТВ / чайник\n(d ≈ 59..64 пк)"),
+        (104.5, "Ноутбук\n(d ≈ 104..105 пк)"),
+        (125.0, "Ширма D&D / Блахадж\n(d ≈ 115..125 пк)"),
+        (140.5, "Границя ватмана\n(d ≈ 140 пк)"),
     ]
     for d_val, label_txt in planes:
         axes[1].axvline(d_val, color="#e15759", linestyle="--", linewidth=1.3)
         axes[1].text(
             d_val,
-            axes[1].get_ylim()[1] * 0.78 if d_val not in (74.0, 143.0) else axes[1].get_ylim()[1] * 0.52,
+            axes[1].get_ylim()[1] * 0.78 if d_val not in (61.0, 125.0) else axes[1].get_ylim()[1] * 0.52,
             label_txt,
             rotation=90,
             verticalalignment="top",

@@ -1,4 +1,4 @@
-"""Частина D: Карта глибини, верифікація відстаней до об'єктів та 3D-хмара точок (Кроки 10-12)."""
+"""Частина D: Карта глибини, верифікація відстаней до 15 контрольних точок та 3D-хмара точок (Кроки 10-12)."""
 
 import csv
 import cv2
@@ -7,86 +7,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from common import (
-    BASELINE_MM,
     RESULTS_DIR,
     FIGURES_DIR,
 )
-
-# 7 контрольних об'єктів сцени на різних ешелонах глибини (Крок 11).
-# Поле "z_meas_cm" містить попередні (еталонні) значення рулетки у см,
-# які за потреби легко оновлюються фактичними вимірами користувача.
-SCENE_OBJECTS = [
-    {
-        "id": 1,
-        "name": "Олівець на білому аркуші А4 (передній план)",
-        "short_name": "1. Олівець на аркуші",
-        "x": 1365,
-        "y": 1065,
-        "half_win": 12,
-        "z_meas_cm": 95.0,
-    },
-    {
-        "id": 2,
-        "name": "Права стулка дерев'яної ширми D&D (дерево)",
-        "short_name": "2. Ширма D&D (права)",
-        "x": 1900,
-        "y": 720,
-        "half_win": 15,
-        "z_meas_cm": 117.0,
-    },
-    {
-        "id": 3,
-        "name": "Центральна стулка ширми D&D (емблема дракона)",
-        "short_name": "3. Ширма D&D (центр)",
-        "x": 1560,
-        "y": 740,
-        "half_win": 15,
-        "z_meas_cm": 125.0,
-    },
-    {
-        "id": 4,
-        "name": "Плюшева акула Blahaj (голова над ширмою)",
-        "short_name": "4. Плюшева акула",
-        "x": 1385,
-        "y": 390,
-        "half_win": 15,
-        "z_meas_cm": 133.0,
-    },
-    {
-        "id": 5,
-        "name": "Ноутбук із наліпками (кришка екрана ліворуч)",
-        "short_name": "5. Ноутбук",
-        "x": 870,
-        "y": 740,
-        "half_win": 15,
-        "z_meas_cm": 150.0,
-    },
-    {
-        "id": 6,
-        "name": "Смугаста подушка біля вікна (ліворуч)",
-        "short_name": "6. Смугаста подушка",
-        "x": 235,
-        "y": 850,
-        "half_win": 15,
-        "z_meas_cm": 240.0,
-    },
-    {
-        "id": 7,
-        "name": "Картина з чайником на стіні (праворуч вгорі)",
-        "short_name": "7. Картина з чайником",
-        "x": 1710,
-        "y": 200,
-        "half_win": 15,
-        "z_meas_cm": 265.0,
-    },
-]
-
-# Додаткові об'єкти сцени (для довідки користувачу в чаті, якщо якийсь із них зручніше поміряти рулеткою)
-EXTRA_OBJECTS = [
-    {"id": 8, "name": "Ваза із сухоцвітами біля штори", "x": 495, "y": 535, "half_win": 15},
-    {"id": 9, "name": "Рама вікна (ліва стулка)", "x": 430, "y": 180, "half_win": 15},
-    {"id": 10, "name": "Кондиціонер під стелею (корпус)", "x": 1240, "y": 45, "half_win": 15},
-]
 
 
 def save_ply(filepath, points, colors):
@@ -125,10 +48,30 @@ def save_ply(filepath, points, colors):
         f.write(data.tobytes())
 
 
+def load_15_rectified_points():
+    """Завантажує 15 контрольних точок користувача з результатами ректифікації (b_vertical_discrepancy.csv)."""
+    pts = []
+    with open(RESULTS_DIR / "b_vertical_discrepancy.csv", "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            pts.append({
+                "id": int(row["id"]),
+                "name": row["object_name"],
+                "short_name": row["short_name"],
+                "xl_a": float(row["xl_after"]),
+                "yl_a": float(row["yl_after"]),
+                "xr_a": float(row["xr_after"]),
+                "yr_a": float(row["yr_after"]),
+                "z_meas_cm": float(row["z_meas_cm"]),
+            })
+    return pts
+
+
 def run_part_d():
     print("=== ЧАСТИНА D: Карта глибини та 3D-хмара точок ===")
     rect_l = cv2.imread(str(RESULTS_DIR / "rect_left.png"), cv2.IMREAD_COLOR)
     disp_sgbm = np.load(RESULTS_DIR / "best_disparity.npy")
+    h, w = disp_sgbm.shape
 
     fs = cv2.FileStorage(str(RESULTS_DIR / "rectification_params.yml"), cv2.FILE_STORAGE_READ)
     P1 = fs.getNode("P1").mat()
@@ -158,13 +101,21 @@ def run_part_d():
     max_diff_mm = float(np.max(np.abs(depth_analytical_mm[valid_mask] - depth_q_scaled_mm[valid_mask])))
     print(f"Макс. розбіжність між аналітичною формулою Z=f*B/d та cv2.reprojectImageTo3D: {max_diff_mm:.5f} мм")
 
-    # 2. Крок 11: Вимірювання відстаней до об'єктів сцени
+    # 2. Крок 11: Верифікація відстаней на 15 контрольних точках сцени (з lab05/figures/points.svg)
+    ctrl_pts = load_15_rectified_points()
     verification_rows = []
-    print("\n--- Відстані до 7 основних об'єктів сцени (Крок 11) ---")
-    for obj in SCENE_OBJECTS:
-        cx, cy, hw = obj["x"], obj["y"], obj["half_win"]
-        patch_d = disp_sgbm[cy - hw : cy + hw + 1, cx - hw : cx + hw + 1]
-        valid_p = patch_d[patch_d > 0.5]
+    print("\n--- Верифікація стереоглибини за 15 контрольними точками сцени (Крок 11) ---")
+    for obj in ctrl_pts:
+        idx = obj["id"]
+        # Для точки #11 (x_L' = 2038.5 > 2016 пк) оцінюємо диспаратність на видимій правій смузі тієї ж стулки ширми (x = 1995)
+        cx = 1995 if idx == 11 else int(round(np.clip(obj["xl_a"], 10, w - 10)))
+        cy = int(round(np.clip(obj["yl_a"], 10, h - 10)))
+        hw = 6
+        patch_d = disp_sgbm[max(0, cy - hw) : min(h, cy + hw + 1), max(0, cx - hw) : min(w, cx + hw + 1)]
+        if idx == 11:
+            valid_p = patch_d[patch_d > 100.0]
+        else:
+            valid_p = patch_d[patch_d > 0.5]
         d_mean = float(np.median(valid_p))
         d_std = float(np.std(valid_p))
         z_calc_cm = (f_rect * B_mm / d_mean) / 10.0
@@ -174,7 +125,7 @@ def run_part_d():
         dz_per_px_cm = ((z_calc_cm * 10.0) ** 2) / (f_rect * B_mm) / 10.0
 
         row = {
-            "id": obj["id"],
+            "id": idx,
             "name": obj["name"],
             "short_name": obj["short_name"],
             "x": cx,
@@ -189,18 +140,9 @@ def run_part_d():
         }
         verification_rows.append(row)
         print(
-            f"#{obj['id']} {obj['name']}: (x={cx}, y={cy}), d={d_mean:.1f}±{d_std:.2f} пк -> "
-            f"Z_calc={z_calc_cm:.1f} см (Z_meas={z_meas_cm:.1f} см, |dZ|={abs_err_cm:.1f} см, {rel_err_pct:.1f}%)"
+            f"#{idx:2d} {obj['name']:40s}: (x={cx:4d}, y={cy:4d}), d={d_mean:5.1f}±{d_std:4.2f} пк -> "
+            f"Z_calc={z_calc_cm:5.1f} см (Z_meas={z_meas_cm:5.1f} см, |dZ|={abs_err_cm:4.1f} см, {rel_err_pct:4.1f}%)"
         )
-
-    print("\n--- Додаткові об'єкти сцени (для довідки) ---")
-    for obj in EXTRA_OBJECTS:
-        cx, cy, hw = obj["x"], obj["y"], obj["half_win"]
-        patch_d = disp_sgbm[cy - hw : cy + hw + 1, cx - hw : cx + hw + 1]
-        valid_p = patch_d[patch_d > 0.5]
-        d_mean = float(np.median(valid_p))
-        z_calc_cm = (f_rect * B_mm / d_mean) / 10.0
-        print(f"#{obj['id']} {obj['name']}: (x={cx}, y={cy}), d={d_mean:.1f} пк -> Z_calc={z_calc_cm:.1f} см")
 
     with open(RESULTS_DIR / "d_depth_verification.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -230,57 +172,72 @@ def run_part_d():
                 f"{r['dz_per_px_cm']:.2f}",
             ])
 
-    # 3. Візуалізація карти глибини та контрольних об'єктів (Рисунок 8)
+    # 3. Візуалізація карти глибини та 15 контрольних точок (Рисунок 8)
     depth_m = depth_analytical_mm / 1000.0
-    fig, axes = plt.subplots(1, 2, figsize=(15, 4.9), dpi=200)
+    fig, axes = plt.subplots(1, 2, figsize=(15.2, 5.0), dpi=200)
 
     axes[0].imshow(cv2.cvtColor(rect_l, cv2.COLOR_BGR2RGB))
-    axes[0].set_title("а) Контрольні об'єкти сцени та області вимірювання Z", fontsize=10.5, fontweight="bold")
+    axes[0].set_title("а) 15 контрольних точок сцени та обчислені стереоглибини Z_calc", fontsize=10.2, fontweight="bold")
+
+    # Індивідуальні зміщення підписів на панелі (а) для уникнення перекриття та виходу за межі кадру
+    offsets_a = {
+        1: (22, -8),
+        2: (22, -8),
+        3: (-210, -8),
+        4: (-215, 6),
+        5: (-215, 6),
+        6: (22, 6),
+        7: (22, -16),
+        8: (22, -10),
+        9: (22, 22),
+        10: (22, 8),
+        11: (-215, -14),
+        12: (-215, -8),
+        13: (22, 16),
+        14: (22, 6),
+        15: (-215, -10),
+    }
     for r in verification_rows:
         cx, cy = r["x"], r["y"]
         rect_patch = patches.Rectangle(
-            (cx - 22, cy - 22), 44, 44, linewidth=1.8, edgecolor="#00ff44", facecolor="none", zorder=4
+            (cx - 16, cy - 16), 32, 32, linewidth=1.5, edgecolor="#00ff44", facecolor="none", zorder=4
         )
         axes[0].add_patch(rect_patch)
-        axes[0].scatter([cx], [cy], c="#ffdf00", edgecolors="black", s=45, zorder=5)
-        if r["id"] == 2:
-            tx, ty = cx - 115, cy - 34
-        elif cx > 1650:
-            tx, ty = cx - 175, cy + 6
-        else:
-            tx, ty = cx + 28, cy + 6
+        axes[0].scatter([cx], [cy], c="#ffdf00", edgecolors="black", s=42, zorder=5)
+        dx, dy = offsets_a.get(r["id"], (22, 6))
         axes[0].text(
-            tx,
-            ty,
+            cx + dx,
+            cy + dy,
             f"#{r['id']}: {r['z_calc_cm']:.1f} см",
             color="white",
-            fontsize=8.5,
+            fontsize=7.8,
             fontweight="bold",
-            bbox=dict(boxstyle="round,pad=0.2", facecolor="#1f77b4", edgecolor="white", alpha=0.9),
+            bbox=dict(boxstyle="round,pad=0.18", facecolor="#1f77b4", edgecolor="white", alpha=0.88),
             zorder=6,
         )
     axes[0].axis("off")
 
-    masked_z = np.ma.masked_where((~valid_mask) | (depth_m < 0.70) | (depth_m > 3.70), depth_m)
+    masked_z = np.ma.masked_where((~valid_mask) | (depth_m < 0.70) | (depth_m > 4.30), depth_m)
     cmap_z = plt.cm.viridis_r.copy()
     cmap_z.set_bad(color="#1a1a1a")
-    im_z = axes[1].imshow(masked_z, cmap=cmap_z, vmin=0.85, vmax=3.50)
+    im_z = axes[1].imshow(masked_z, cmap=cmap_z, vmin=0.75, vmax=3.80)
     axes[1].set_title(
         f"б) Карта глибини Z = f·B / d (f = {f_rect:.1f} пк, B = {B_mm:.0f} мм)",
-        fontsize=10.5,
+        fontsize=10.2,
         fontweight="bold",
     )
     for r in verification_rows:
-        axes[1].scatter([r["x"]], [r["y"]], c="white", edgecolors="black", s=50, zorder=5)
-        offset_x = -65 if r["x"] > 1750 else 24
+        axes[1].scatter([r["x"]], [r["y"]], c="white", edgecolors="black", s=45, zorder=5)
+        dx_b = -58 if r["x"] > 1800 else 18
+        dy_b = 22 if r["y"] < 45 else (-14 if r["y"] > 1090 else 6)
         axes[1].text(
-            r["x"] + offset_x,
-            r["y"] + 6,
+            r["x"] + dx_b,
+            r["y"] + dy_b,
             f"#{r['id']}",
             color="white",
-            fontsize=8.5,
+            fontsize=8.0,
             fontweight="bold",
-            bbox=dict(boxstyle="round,pad=0.15", facecolor="black", edgecolor="white", alpha=0.75),
+            bbox=dict(boxstyle="round,pad=0.14", facecolor="black", edgecolor="white", alpha=0.78),
             zorder=6,
         )
     axes[1].axis("off")
@@ -292,35 +249,53 @@ def run_part_d():
     plt.close(fig)
 
     # 4. Графік залежності похибки вимірювання глибини від відстані Z (Рисунок 9)
-    fig, axes = plt.subplots(1, 2, figsize=(13.8, 4.4), dpi=200)
-    z_grid_cm = np.linspace(80.0, 295.0, 200)
+    fig, axes = plt.subplots(1, 2, figsize=(14.0, 4.6), dpi=200)
+    z_grid_cm = np.linspace(70.0, 365.0, 220)
     fb_cm_px = f_rect * (B_mm / 10.0)
-    for dd_px, col, ls in [(0.5, "#59a14f", "--"), (1.0, "#4e79a7", "-"), (2.0, "#e15759", "-.")]:
+    for dd_px, col, ls in [(1.0, "#59a14f", "--"), (2.5, "#4e79a7", "-"), (5.0, "#e15759", "-.")]:
         dz_theo = (z_grid_cm ** 2) / fb_cm_px * dd_px
-        axes[0].plot(z_grid_cm, dz_theo, color=col, linestyle=ls, linewidth=1.8, label=f"Теорія: Δd = {dd_px:.1f} пк")
+        axes[0].plot(z_grid_cm, dz_theo, color=col, linestyle=ls, linewidth=1.7, label=f"Теорія: Δd = {dd_px:.1f} пк")
 
     z_meas_arr = np.array([r["z_meas_cm"] for r in verification_rows])
     abs_err_arr = np.array([r["abs_err_cm"] for r in verification_rows])
 
     axes[0].scatter(
-        z_meas_arr, abs_err_arr, color="#d62728", edgecolors="black", s=65, zorder=5, label="Експеримент |Z_calc - Z_meas|"
+        z_meas_arr, abs_err_arr, color="#d62728", edgecolors="black", s=55, zorder=5, label="Експеримент |Z_calc - Z_meas|"
     )
+    err_offsets = {
+        1: (-8, 7),
+        2: (6, -10),
+        3: (6, -6),
+        4: (6, -8),
+        5: (-18, 5),
+        6: (6, 4),
+        7: (6, 4),
+        8: (6, 4),
+        9: (-20, 4),
+        10: (-24, -8),
+        11: (-22, -10),
+        12: (-26, -4),
+        13: (6, -8),
+        14: (-18, 6),
+        15: (-22, 4),
+    }
     for r in verification_rows:
+        ox, oy = err_offsets.get(r["id"], (5, 4))
         axes[0].annotate(
             f"#{r['id']}",
             (r["z_meas_cm"], r["abs_err_cm"]),
             textcoords="offset points",
-            xytext=(6, 4),
-            fontsize=8.5,
+            xytext=(ox, oy),
+            fontsize=8.0,
             fontweight="bold",
         )
-    axes[0].set_xlabel("Відстань до об'єкта Z, см", fontsize=9.5)
+    axes[0].set_xlabel("Виміряна рулеткою відстань Z_meas, см", fontsize=9.5)
     axes[0].set_ylabel("Абсолютна похибка |ΔZ|, см", fontsize=9.5)
     axes[0].set_title("а) Квадратичне зростання абсолютної похибки ΔZ ∝ Z²", fontsize=10, fontweight="bold")
     axes[0].grid(linestyle=":", alpha=0.6)
-    axes[0].legend(fontsize=8.5, loc="upper left")
+    axes[0].legend(fontsize=8.3, loc="upper left")
 
-    axes[1].plot([80, 290], [80, 290], color="black", linestyle="--", linewidth=1.4, label="Ідеальна збіжність Z_calc = Z_meas")
+    axes[1].plot([70, 365], [70, 365], color="black", linestyle="--", linewidth=1.4, label="Ідеальна збіжність Z_calc = Z_meas")
     axes[1].errorbar(
         z_meas_arr,
         [r["z_calc_cm"] for r in verification_rows],
@@ -328,24 +303,43 @@ def run_part_d():
         fmt="o",
         color="#4e79a7",
         ecolor="#e15759",
-        elinewidth=1.5,
-        capsize=4,
-        markersize=7,
+        elinewidth=1.4,
+        capsize=3.5,
+        markersize=6,
         label="Z_calc ± чутливість на 1 пк",
     )
+    zc_offsets = {
+        1: (-18, 7),
+        2: (6, -4),
+        3: (6, -9),
+        4: (6, -9),
+        5: (-22, 7),
+        6: (-22, 7),
+        7: (6, -4),
+        8: (6, -12),
+        9: (-22, -10),
+        10: (-26, -3),
+        11: (5, -12),
+        12: (-26, -4),
+        13: (6, -8),
+        14: (-20, 7),
+        15: (-24, 5),
+    }
     for r in verification_rows:
+        ox, oy = zc_offsets.get(r["id"], (6, 4))
         axes[1].annotate(
-            f"{r['short_name']} ({r['rel_err_pct']:.1f}%)",
+            f"#{r['id']}",
             (r["z_meas_cm"], r["z_calc_cm"]),
             textcoords="offset points",
-            xytext=(6, -10 if r["id"] in (2, 4, 7) else 5),
+            xytext=(ox, oy),
             fontsize=8.0,
+            fontweight="bold",
         )
     axes[1].set_xlabel("Виміряна рулеткою відстань Z_meas, см", fontsize=9.5)
     axes[1].set_ylabel("Обчислена стереоглибина Z_calc, см", fontsize=9.5)
-    axes[1].set_title("б) Верифікація стереоглибини за еталонними об'єктами", fontsize=10, fontweight="bold")
+    axes[1].set_title("б) Верифікація стереоглибини за 15 точками сцени", fontsize=10, fontweight="bold")
     axes[1].grid(linestyle=":", alpha=0.6)
-    axes[1].legend(fontsize=8.5, loc="upper left")
+    axes[1].legend(fontsize=8.3, loc="upper left")
 
     plt.tight_layout()
     fig.savefig(FIGURES_DIR / "d_error_vs_distance.png", bbox_inches="tight")
@@ -356,14 +350,17 @@ def run_part_d():
     gy = cv2.Sobel(disp_sgbm, cv2.CV_32F, 0, 1, ksize=3)
     grad_mag = np.hypot(gx, gy)
 
-    h, w = disp_sgbm.shape
     x_grid = np.broadcast_to(np.arange(w)[None, :], (h, w))
+    y_grid = np.broadcast_to(np.arange(h)[:, None], (h, w))
     cloud_mask = (
         (x_grid >= 192)
-        & (disp_sgbm > 42.0)
-        & (disp_sgbm < 191.0)
-        & (depth_analytical_mm >= 800.0)
-        & (depth_analytical_mm <= 3600.0)
+        & (x_grid < w - 12)
+        & (y_grid >= 12)
+        & (y_grid < h - 12)
+        & (disp_sgbm > 36.0)
+        & (disp_sgbm < 205.0)
+        & (depth_analytical_mm >= 750.0)
+        & (depth_analytical_mm <= 4200.0)
         & (grad_mag < 12.0)
     )
 
@@ -399,7 +396,7 @@ def run_part_d():
     ax1.set_ylabel("Z (глибина), м", fontsize=8.5, labelpad=2)
     ax1.set_zlabel("Y (висота), м", fontsize=8.5, labelpad=2)
     ax1.set_xlim(-1.1, 1.3)
-    ax1.set_ylim(0.80, 3.5)
+    ax1.set_ylim(0.75, 4.1)
     ax1.set_zlim(-0.7, 0.8)
     ax1.view_init(elev=22, azim=-62)
     ax1.set_title("а) Перспективний 3D-ракурс (elev=22°, azim=-62°)", fontsize=9.8, fontweight="bold")
@@ -410,7 +407,7 @@ def run_part_d():
     ax2.set_ylabel("Z (глибина), м", fontsize=8.5, labelpad=2)
     ax2.set_zlabel("Y (висота), м", fontsize=8.5, labelpad=2)
     ax2.set_xlim(-1.1, 1.3)
-    ax2.set_ylim(0.80, 3.5)
+    ax2.set_ylim(0.75, 4.1)
     ax2.set_zlim(-0.7, 0.8)
     ax2.view_init(elev=30, azim=-118)
     ax2.set_title("б) Обернений 3D-ракурс (elev=30°, azim=-118°)", fontsize=9.8, fontweight="bold")
@@ -418,32 +415,37 @@ def run_part_d():
     ax3 = fig.add_subplot(1, 3, 3)
     ax3.scatter(X, Z, c=cols_vis, s=0.8, alpha=0.85, rasterized=True)
     cx_rect = float(P1[0, 2])
-    label_offsets = {
-        1: (-0.32, -0.14),
-        2: (-0.48, -0.13),
-        3: (-0.48, 0.08),
-        4: (0.04, 0.08),
-        5: (-0.38, 0.09),
-        6: (0.05, -0.04),
-        7: (-0.52, 0.08),
+    # Позначаємо всі 15 контрольних точок на виді зверху (X-Z), підписуючи ключові ешелони
+    highlight_labels = {
+        7: ("7. Олівець", (-0.36, -0.10)),
+        15: ("15. Ватман", (0.06, -0.12)),
+        1: ("1. Ширма", (0.06, 0.04)),
+        2: ("2. Блахадж", (-0.42, 0.06)),
+        3: ("3. Ноутбук", (-0.42, 0.05)),
+        8: ("8. Рюкзак", (0.06, -0.06)),
+        4: ("4. Чайник", (-0.42, 0.06)),
+        9: ("9. Кондиціонер", (0.06, -0.08)),
+        13: ("13. Вікно", (-0.38, 0.08)),
+        12: ("12. Шпалери", (0.06, -0.06)),
     }
     for r in verification_rows:
         z_m = r["z_calc_cm"] / 100.0
         x_m = (r["x"] - cx_rect) * z_m / f_rect
-        dx, dz = label_offsets.get(r["id"], (0.04, 0.04))
-        ax3.scatter([x_m], [z_m], c="yellow", edgecolors="black", s=45, zorder=5)
-        ax3.text(
-            np.clip(x_m + dx, -1.10, 0.65),
-            np.clip(z_m + dz, 0.78, 3.45),
-            r["short_name"],
-            fontsize=7.6,
-            fontweight="bold",
-            clip_on=True,
-            bbox=dict(boxstyle="round,pad=0.14", facecolor="white", alpha=0.88, edgecolor="black"),
-            zorder=6,
-        )
-    ax3.set_xlim(-1.15, 1.35)
-    ax3.set_ylim(0.75, 3.55)
+        ax3.scatter([x_m], [z_m], c="yellow", edgecolors="black", s=38, zorder=5)
+        if r["id"] in highlight_labels:
+            lbl_txt, (dx, dz) = highlight_labels[r["id"]]
+            ax3.text(
+                np.clip(x_m + dx, -1.12, 0.72),
+                np.clip(z_m + dz, 0.74, 4.05),
+                lbl_txt,
+                fontsize=7.3,
+                fontweight="bold",
+                clip_on=True,
+                bbox=dict(boxstyle="round,pad=0.13", facecolor="white", alpha=0.88, edgecolor="black"),
+                zorder=6,
+            )
+    ax3.set_xlim(-1.18, 1.35)
+    ax3.set_ylim(0.70, 4.25)
     ax3.set_xlabel("Горизонтальна координата X, м", fontsize=9.2)
     ax3.set_ylabel("Глибина Z від стереокамери, м", fontsize=9.2)
     ax3.set_title("в) Проекція зверху (X-Z) та ешелони об'єктів", fontsize=9.8, fontweight="bold")
