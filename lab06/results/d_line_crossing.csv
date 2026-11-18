@@ -1,0 +1,4 @@
+y_line_px,manual_gt,cold_mog2_naive,warm_mog2_no_debounce,warm_mog2_debounced,up_count,down_count,accuracy_pct
+1100,8,13,9,7,3,4,87.5
+1116,8,12,11,8,4,4,100.0
+1152,8,10,8,8,4,4,100.0
