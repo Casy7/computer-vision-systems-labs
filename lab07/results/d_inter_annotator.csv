@@ -1,0 +1,2 @@
+status,image_id,annotator1_area_px,annotator2_area_px,iou,dice,diff_px
+PENDING,-,0,0,0.0000,0.0000,0
