@@ -461,28 +461,155 @@ def run_parts_a_b_c_d():
     plt.close(fig)
 
     # --- ЧАСТИНА D (Кроки 9--10): Узгодженість між розмітниками ---
-    colleague_masks = sorted(PART_D_DIR.glob("*.png")) if PART_D_DIR.exists() else []
+    colleague_masks = sorted(
+        PART_D_DIR.glob("*.png"),
+        key=lambda p: int("".join(ch for ch in p.stem.split("_")[0] if ch.isdigit()) or 0),
+    ) if PART_D_DIR.exists() else []
+
+    inter_rows = []
+    inter_vis = {}
+    print("\n--- Частина D: Узгодженість між розмітниками (Кроки 9--10) ---")
+    for m2_path in colleague_masks:
+        digits = "".join(ch for ch in m2_path.stem.split("_")[0] if ch.isdigit())
+        if not digits:
+            continue
+        img_id_d = int(digits)
+        img_full, gt1, _ = load_image_and_mask(img_id_d, scale=1.0)
+        m2_raw = cv2.imread(str(m2_path), cv2.IMREAD_GRAYSCALE)
+        if m2_raw is None:
+            continue
+        if m2_raw.shape != gt1.shape:
+            m2_raw = cv2.resize(m2_raw, (gt1.shape[1], gt1.shape[0]), interpolation=cv2.INTER_NEAREST)
+        gt2 = (m2_raw > 127).astype(np.uint8)
+
+        iou_d = compute_iou(gt1, gt2)
+        dice_d = compute_dice(gt1, gt2)
+        diff_px = int(np.sum(gt1 != gt2))
+        only1_px = int(np.sum((gt1 == 1) & (gt2 == 0)))
+        only2_px = int(np.sum((gt1 == 0) & (gt2 == 1)))
+        row_b = vis_cache[img_id_d]["row"]
+        gc_iou = row_b["GrabCut_iou"]
+        best_glob_iou = max(row_b["Otsu_iou"], row_b["Watershed_iou"], row_b["SLIC_iou"])
+
+        r_d = {
+            "id": img_id_d,
+            "name": row_b["name"],
+            "short": row_b["short"],
+            "area1": int(gt1.sum()),
+            "area2": int(gt2.sum()),
+            "diff_px": diff_px,
+            "only1_px": only1_px,
+            "only2_px": only2_px,
+            "iou": iou_d,
+            "dice": dice_d,
+            "gc_iou": gc_iou,
+            "best_glob_iou": best_glob_iou,
+        }
+        inter_rows.append(r_d)
+        print(
+            f"Кадр #{img_id_d} ({r_d['short']:10s}): IoU_людей = {iou_d:.4f}, Dice = {dice_d:.4f}, "
+            f"розбіжність = {diff_px} пк (лише Р1: {only1_px}, лише Р2: {only2_px}) | GrabCut IoU = {gc_iou:.3f}"
+        )
+
+        # Готуємо кроп навколо об'єкта для візуалізації розбіжностей контуру
+        if img_id_d in (5, 3, 1):
+            ys, xs = np.where((gt1 > 0) | (gt2 > 0))
+            h_f, w_f = gt1.shape
+            pad_c = max(40, int(0.12 * max(ys.max() - ys.min(), xs.max() - xs.min())))
+            y0, y1 = max(0, int(ys.min()) - pad_c), min(h_f, int(ys.max()) + pad_c)
+            x0, x1 = max(0, int(xs.min()) - pad_c), min(w_f, int(xs.max()) + pad_c)
+            crop_rgb = cv2.cvtColor(img_full[y0:y1, x0:x1], cv2.COLOR_BGR2RGB)
+            c_g1 = gt1[y0:y1, x0:x1]
+            c_g2 = gt2[y0:y1, x0:x1]
+            # Накладання: напівпрозора заливка збігу + яскраве підсвічування розбіжностей
+            overlay = crop_rgb.astype(np.float32) * 0.55
+            agree = (c_g1 == 1) & (c_g2 == 1)
+            only1 = (c_g1 == 1) & (c_g2 == 0)
+            only2 = (c_g1 == 0) & (c_g2 == 1)
+            overlay[agree] = overlay[agree] * 0.5 + np.array([40, 210, 90], dtype=np.float32) * 0.5
+            # Потовщуємо 1-піксельні розбіжності дилатацією 3x3 на повному 4K-кадрі, щоб їх було чітко видно на рисунку
+            k_vis = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+            only1_vis = cv2.dilate(only1.astype(np.uint8), k_vis) > 0
+            only2_vis = cv2.dilate(only2.astype(np.uint8), k_vis) > 0
+            overlay[only1_vis] = np.array([255, 45, 45], dtype=np.float32)
+            overlay[only2_vis] = np.array([0, 220, 255], dtype=np.float32)
+            overlay_u8 = np.clip(overlay, 0, 255).astype(np.uint8)
+            # Зменшуємо кроп для компактного рендерингу
+            max_side = 700.0
+            sc_v = min(1.0, max_side / max(overlay_u8.shape[:2]))
+            if sc_v < 1.0:
+                overlay_u8 = cv2.resize(
+                    overlay_u8,
+                    (int(round(overlay_u8.shape[1] * sc_v)), int(round(overlay_u8.shape[0] * sc_v))),
+                    interpolation=cv2.INTER_AREA,
+                )
+            inter_vis[img_id_d] = (overlay_u8, r_d)
+
     with open(RESULTS_DIR / "d_inter_annotator.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["status", "image_id", "annotator1_area_px", "annotator2_area_px", "iou", "dice", "diff_px"])
-        if colleague_masks:
-            m2_path = colleague_masks[0]
-            # Витягуємо номер кадру з імені файлу (наприклад, 5_mask_colleague.png -> 5)
-            digits = "".join(ch for ch in m2_path.stem.split("_")[0] if ch.isdigit())
-            img_id_d = int(digits) if digits else 1
-            _, gt1, _ = load_image_and_mask(img_id_d, scale=1.0)
-            m2_raw = cv2.imread(str(m2_path), cv2.IMREAD_GRAYSCALE)
-            if m2_raw.shape != gt1.shape:
-                m2_raw = cv2.resize(m2_raw, (gt1.shape[1], gt1.shape[0]), interpolation=cv2.INTER_NEAREST)
-            gt2 = (m2_raw > 127).astype(np.uint8)
-            iou_d = compute_iou(gt1, gt2)
-            dice_d = compute_dice(gt1, gt2)
-            diff_px = int(np.sum(gt1 != gt2))
-            writer.writerow(["DONE", img_id_d, int(gt1.sum()), int(gt2.sum()), f"{iou_d:.4f}", f"{dice_d:.4f}", diff_px])
-            print(f"\nЧастина D виконана на кадрі #{img_id_d}: IoU = {iou_d:.4f}, Dice = {dice_d:.4f}")
-        else:
-            writer.writerow(["PENDING", "-", 0, 0, "0.0000", "0.0000", 0])
-            print("\nЧастина D (Кроки 9--10): очікується незалежна маска колеги у lab07/data/part_d/")
+        writer.writerow(["image_id", "name", "area1_px", "area2_px", "diff_px", "iou", "dice", "grabcut_iou"])
+        for r in inter_rows:
+            writer.writerow([
+                r["id"], r["name"], r["area1"], r["area2"], r["diff_px"],
+                f"{r['iou']:.4f}", f"{r['dice']:.4f}", f"{r['gc_iou']:.3f}"
+            ])
+        if inter_rows:
+            ious_d = np.array([r["iou"] for r in inter_rows])
+            dices_d = np.array([r["dice"] for r in inter_rows])
+            gcs_d = np.array([r["gc_iou"] for r in inter_rows])
+            mean_diff = int(round(np.mean([r["diff_px"] for r in inter_rows])))
+            writer.writerow([
+                "Сер.", f"Середнє ± σ (N = {len(inter_rows)})", "-", "-", mean_diff,
+                f"{np.mean(ious_d):.4f} ± {np.std(ious_d, ddof=1):.4f}",
+                f"{np.mean(dices_d):.4f}",
+                f"{np.mean(gcs_d):.3f}",
+            ])
+            print(
+                f"Середня міжрозмітникова узгодженість (N={len(inter_rows)}): "
+                f"IoU = {np.mean(ious_d):.4f} ± {np.std(ious_d, ddof=1):.4f} "
+                f"[{np.min(ious_d):.4f} .. {np.max(ious_d):.4f}], Dice = {np.mean(dices_d):.4f}"
+            )
+
+    # Рисунок (Частина D): Карта розбіжностей контурів двох розмітників (Ніко #5, microSD #3) + верхня межа IoU
+    if inter_rows:
+        fig, axes = plt.subplots(1, 3, figsize=(15.0, 4.7), dpi=190, gridspec_kw={"width_ratios": [1.15, 0.95, 1.35]})
+        if 5 in inter_vis:
+            ov5, r5 = inter_vis[5]
+            axes[0].imshow(ov5)
+            axes[0].set_title(
+                f"а) Ніко (#5): IoU = {r5['iou']:.4f}, Dice = {r5['dice']:.4f}\n(червоний -- лише Р1, блакитний -- лише Р2)",
+                fontsize=9.3, fontweight="bold",
+            )
+            axes[0].axis("off")
+
+        if 3 in inter_vis:
+            ov3, r3 = inter_vis[3]
+            axes[1].imshow(ov3)
+            axes[1].set_title(
+                f"б) microSD (#3, збільш.): IoU = {r3['iou']:.4f}\n(найменший об'єкт -> найчутливіший контур)",
+                fontsize=9.3, fontweight="bold",
+            )
+            axes[1].axis("off")
+
+        dx = np.arange(len(inter_rows))
+        w_d = 0.26
+        axes[2].bar(dx - w_d, [r["iou"] for r in inter_rows], width=w_d, color="#2ca02c", edgecolor="black", linewidth=0.5, label="Людина--Людина (верхня межа)")
+        axes[2].bar(dx, [r["gc_iou"] for r in inter_rows], width=w_d, color="#4e79a7", edgecolor="black", linewidth=0.5, label="GrabCut (5 іт.)")
+        axes[2].bar(dx + w_d, [r["best_glob_iou"] for r in inter_rows], width=w_d, color="#e15759", edgecolor="black", linewidth=0.5, label="Кращий глобальний (Оцу/WS/SLIC)")
+        for k_i, r in enumerate(inter_rows):
+            axes[2].text(k_i - w_d, r["iou"] + 0.015, f"{r['iou']:.3f}", ha="center", fontsize=7.3, fontweight="bold", color="#1b5e20", rotation=90)
+            axes[2].text(k_i, r["gc_iou"] + 0.015, f"{r['gc_iou']:.3f}", ha="center", fontsize=7.3, fontweight="bold", color="#1f4e79", rotation=90)
+        axes[2].set_xticks(dx)
+        axes[2].set_xticklabels([r["short"] for r in inter_rows], rotation=18, ha="right", fontsize=8.5)
+        axes[2].set_ylim(0.0, 1.38)
+        axes[2].set_ylabel("Метрика якості IoU", fontsize=9.4)
+        axes[2].set_title("в) Верхня межа якості (розмітники) проти алгоритмів", fontsize=9.6, fontweight="bold")
+        axes[2].grid(axis="y", linestyle=":", alpha=0.6)
+        axes[2].legend(fontsize=7.7, loc="upper center", ncol=1, framealpha=0.92)
+
+        plt.tight_layout()
+        fig.savefig(FIGURES_DIR / "d_inter_annotator.png", bbox_inches="tight")
+        plt.close(fig)
 
     print("Частини A--D опрацьовано!")
 

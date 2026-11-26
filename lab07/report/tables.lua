@@ -64,6 +64,8 @@ local function esc_tex(s)
     :gsub("_", "\\_")
     :gsub("%%", "\\%%")
     :gsub("#", "\\#")
+    :gsub("±", "$\\pm$")
+    :gsub("σ", "$\\sigma$")
     :gsub("<=", "$\\le$")
     :gsub(">=", "$\\ge$")
     :gsub("<", "$<$")
@@ -143,7 +145,39 @@ function tab_accuracy_paradox()
   end
 end
 
--- Таблиця 5: Порівняння конфігурацій детектора HOG+SVM на 30 кадрах INRIA Person (Частина E)
+-- Таблиця 5: Узгодженість між двома незалежними розмітниками (Частина D, Кроки 9--10)
+function tab_inter_annotator()
+  local rows = read_csv("d_inter_annotator.csv")
+  for idx, r in ipairs(rows) do
+    local is_mean = (idx == #rows)
+    if is_mean then
+      tex.print("\\midrule")
+      out({
+        "\\textbf{" .. esc_tex(r[1]) .. "}",
+        "\\textbf{" .. esc_tex(r[2]) .. "}",
+        r[3],
+        r[4],
+        r[5] .. "~пк",
+        "\\textbf{" .. esc_tex(r[6]) .. "}",
+        "\\textbf{" .. f(r[7], 4) .. "}",
+        "\\textbf{" .. f(r[8], 3) .. "}"
+      })
+    else
+      out({
+        r[1],
+        esc_tex(r[2]),
+        r[3],
+        r[4],
+        r[5] .. "~пк",
+        "\\textbf{" .. f(r[6], 4) .. "}",
+        f(r[7], 4),
+        f(r[8], 3)
+      })
+    end
+  end
+end
+
+-- Таблиця 6: Порівняння конфігурацій детектора HOG+SVM на 30 кадрах INRIA Person (Частина E)
 function tab_hog_summary()
   local rows = read_csv("e_hog_summary.csv")
   for i, r in ipairs(rows) do
